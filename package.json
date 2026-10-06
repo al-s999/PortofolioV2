@@ -1,83 +1,78 @@
 {
   "name": "portfolio",
   "version": "1.0.0",
-  "license": "Apache-2.0",
-  "author": "Microsoft Corp.",
-  "homepage": "https://www.typescriptlang.org/",
-  "keywords": [
-    "TypeScript",
-    "Microsoft",
-    "compiler",
-    "language",
-    "javascript"
-  ],
-  "bugs": {
-    "url": "https://github.com/microsoft/TypeScript/issues"
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "dev": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
+    "build:web": "expo export -p web",
+    "build:android": "eas build --platform android",
+    "build:ios": "eas build --platform ios",
+    "db:push": "supabase db push",
+    "db:generate": "supabase gen types typescript --local > types/supabase.ts"
   },
-  "type": "module",
-  "preferUnplugged": true,
+  "dependencies": {
+    "@expo/metro-runtime": "^57.0.16",
+    "@expo/vector-icons": "^15.1.1",
+    "@hookform/resolvers": "^5.9.1",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-community/netinfo": "^12.0.1",
+    "@react-native-reusables/cli": "^0.7.1",
+    "@supabase/supabase-js": "^2.117.2",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tanstack/react-query": "^5.104.1",
+    "@tanstack/react-query-devtools": "^5.104.1",
+    "clsx": "^2.1.1",
+    "expo": "~57.0.26",
+    "expo-build-properties": "~57.0.22",
+    "expo-constants": "^57.0.20",
+    "expo-dev-client": "~57.0.19",
+    "expo-document-picker": "~57.0.3",
+    "expo-image-picker": "~57.0.20",
+    "expo-linking": "^57.0.11",
+    "expo-router": "^57.0.24",
+    "expo-secure-store": "~57.0.4",
+    "expo-status-bar": "^57.0.1",
+    "expo-web-browser": "^57.0.3",
+    "lucide-react-native": "^1.50.0",
+    "moti": "^0.30.0",
+    "nativewind": "^4.2.7",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-hook-form": "^7.89.0",
+    "react-native": "0.86.3",
+    "react-native-css-interop": "^0.2.7",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "^15.15.4",
+    "react-native-web": "^0.21.3",
+    "react-native-webview": "^13.16.1",
+    "react-native-worklets": "0.10.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^3.4.19",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@types/react": "^19.3.0",
+    "@types/react-native": "^0.72.8",
+    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/parser": "^8.71.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-native": "^5.0.0",
+    "eslint-plugin-tailwindcss": "^4.4.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-tailwindcss": "^0.8.1",
+    "typescript": "^5.3.3"
+  },
   "engines": {
-    "node": ">=16.20.0"
-  },
-  "files": [
-    "bin",
-    "lib",
-    "dist",
-    "vendor",
-    "NOTICE.txt"
-  ],
-  "bin": {
-    "tsc": "./bin/tsc"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    ".": "./lib/version.cjs",
-    "./unstable/sync": "./dist/api/sync/api.js",
-    "./unstable/async": "./dist/api/async/api.js",
-    "./unstable/fs": "./dist/api/fs.js",
-    "./unstable/proto": "./dist/api/proto.js",
-    "./unstable/ast": "./dist/ast/index.js",
-    "./unstable/ast/is": "./dist/ast/is.js",
-    "./unstable/ast/factory": "./dist/ast/factory.generated.js",
-    "./unstable/ast/utils": "./dist/ast/utils.js",
-    "./unstable/ast/scanner": "./dist/ast/scanner.js",
-    "./unstable/ast/visitor": "./dist/ast/visitor.js",
-    "./unstable/ast/clone": "./dist/ast/clone.js"
-  },
-  "imports": {
-    "#getExePath": "./lib/getExePath.js",
-    "#enums/*": {
-      "types": "./dist/enums/*.enum.d.ts",
-      "default": "./dist/enums/*.js"
-    },
-    "#vscode-jsonrpc/node": "./vendor/vscode-jsonrpc/lib/node/main.js"
-  },
-  "gitHead": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
-  "publishConfig": {
-    "access": "public",
-    "tag": "latest"
-  },
-  "optionalDependencies": {
-    "@typescript/typescript-win32-x64": "7.0.2",
-    "@typescript/typescript-win32-arm64": "7.0.2",
-    "@typescript/typescript-linux-x64": "7.0.2",
-    "@typescript/typescript-linux-arm": "7.0.2",
-    "@typescript/typescript-linux-arm64": "7.0.2",
-    "@typescript/typescript-darwin-x64": "7.0.2",
-    "@typescript/typescript-darwin-arm64": "7.0.2",
-    "@typescript/typescript-aix-ppc64": "7.0.2",
-    "@typescript/typescript-freebsd-arm64": "7.0.2",
-    "@typescript/typescript-freebsd-x64": "7.0.2",
-    "@typescript/typescript-linux-loong64": "7.0.2",
-    "@typescript/typescript-linux-mips64el": "7.0.2",
-    "@typescript/typescript-linux-ppc64": "7.0.2",
-    "@typescript/typescript-linux-riscv64": "7.0.2",
-    "@typescript/typescript-linux-s390x": "7.0.2",
-    "@typescript/typescript-netbsd-arm64": "7.0.2",
-    "@typescript/typescript-netbsd-x64": "7.0.2",
-    "@typescript/typescript-openbsd-arm64": "7.0.2",
-    "@typescript/typescript-openbsd-x64": "7.0.2",
-    "@typescript/typescript-sunos-x64": "7.0.2"
-  },
-  "private": true
+    "node": ">=18.0.0"
+  }
 }
