@@ -9,35 +9,12 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Separator } from '@/components/ui/Separator';
 import { useProjects } from '@/lib/queries';
-import { buildSeoFromAboutMe } from '@/lib/seo';
+import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useEffect, useState } from 'react';
 import { useScrollNav } from '@/components/ScrollContext';
 
 export async function generateMetadata() {
-  try {
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
-      return buildSeoFromAboutMe(null, siteUrl);
-    }
-
-    const res = await fetch(`${supabaseUrl}/rest/v1/about_me?select=*&order=updated_at.desc&limit=1`, {
-      headers: {
-        apikey: supabaseAnonKey,
-        Authorization: `Bearer ${supabaseAnonKey}`,
-      },
-    });
-
-    const data = await res.json();
-    const aboutMe = Array.isArray(data) && data.length > 0 ? data[0] : (data?.[0] ?? null);
-    const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
-    return buildSeoFromAboutMe(aboutMe, siteUrl);
-  } catch {
-    const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
-    return buildSeoFromAboutMe(null, siteUrl);
-  }
+  return generateGlobalMetadata();
 }
 
 export default function ProjectsScreen() {

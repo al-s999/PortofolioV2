@@ -28,8 +28,9 @@ export function buildSeoFromAboutMe(
   const topSkills = skillNames.slice(0, 8);
   const keywords = `${profession}, ${topSkills.join(', ')}, portfolio`;
 
-  const canonical = siteUrl || 'https://example.com';
-  const ogImage = aboutMe?.avatar_url ?? `${canonical}/logo512.png`;
+  const canonical = siteUrl || 'https://portofoliov2.ahmadrosyidalfualdi.workers.dev/';
+  const siteRoot = canonical.replace(/\/+$/, '');
+  const ogImage = aboutMe?.avatar_url || `${siteRoot}/logo512.png`;
 
   const jsonLd = JSON.stringify({
     '@context': 'https://schema.org',

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://portofoliov2.ahmadrosyidalfualdi.workers.dev/sitemap.xml
