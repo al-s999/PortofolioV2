@@ -120,9 +120,9 @@ export default function AboutScreen() {
                       </View>
                       <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Web Developer</Text>
                     </View>
-                    <View className="flex-row flex-wrap gap-4">
+                    <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                       {aboutMe.skills.filter(s => s.category !== 'data').map((skill, i) => (
-                        <SkillBadge key={i} name={skill.name} isDark={isDark} />
+                        <SkillBadge key={i} name={skill.name} isDark={isDark} isWeb={isWeb} />
                       ))}
                       {aboutMe.skills.filter(s => s.category !== 'data').length === 0 && (
                         <Text className="text-gray-500 dark:text-gray-400">No web developer skills added yet.</Text>
@@ -137,9 +137,9 @@ export default function AboutScreen() {
                       </View>
                       <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Data Scientist</Text>
                     </View>
-                    <View className="flex-row flex-wrap gap-4">
+                    <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                       {aboutMe.skills.filter(s => s.category === 'data').map((skill, i) => (
-                        <SkillBadge key={i} name={skill.name} isDark={isDark} />
+                        <SkillBadge key={i} name={skill.name} isDark={isDark} isWeb={isWeb} />
                       ))}
                       {aboutMe.skills.filter(s => s.category === 'data').length === 0 && (
                         <Text className="text-gray-500 dark:text-gray-400">No data scientist skills added yet.</Text>
@@ -407,7 +407,7 @@ function SkillLevel({ level }: { level: number }) {
   );
 }
 
-function SkillBadge({ name, isDark }: { name: string, isDark: boolean }) {
+function SkillBadge({ name, isDark, isWeb }: { name: string, isDark: boolean, isWeb?: boolean }) {
   const getIcon = (name: string, isDark: boolean) => {
     const n = name.toLowerCase();
     if (n.includes('python')) return <MaterialCommunityIcons name="language-python" size={32} color="#3776AB" />;
@@ -428,9 +428,9 @@ function SkillBadge({ name, isDark }: { name: string, isDark: boolean }) {
   };
 
   return (
-    <View className="w-24 h-24 rounded-2xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border items-center justify-center shadow-sm">
+    <View className={cn('rounded-2xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border items-center justify-center shadow-sm px-1 py-3', isWeb === false ? 'flex-1 basis-[30%] min-w-[88px] max-w-[120px] min-h-[96px] aspect-square' : 'w-24 h-24')}>
       {getIcon(name, isDark)}
-      <Text className="text-gray-700 dark:text-gray-300 font-medium text-xs mt-3 text-center" numberOfLines={1}>{name}</Text>
+      <Text className="text-gray-700 dark:text-gray-300 font-medium text-xs mt-3 text-center px-1" numberOfLines={2}>{name}</Text>
     </View>
   );
 }
