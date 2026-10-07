@@ -234,8 +234,8 @@ export default function AboutScreen() {
                           setSelectedCert(cert);
                         }}
                       >
-                        {cert.file_url.toLowerCase().endsWith('.pdf') ? (
-                          Platform.OS === 'web' ? (
+                        {isPdfUrl(cert.file_url) ? (
+                          Platform.OS === 'web' && isWeb ? (
                             <View style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative', alignItems: 'center', justifyContent: 'center' }}>
                               <div style={{ height: '100%', maxWidth: '100%', aspectRatio: 1.414, position: 'relative', overflow: 'hidden' }}>
                                 <iframe src={`${cert.file_url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=Fit`} style={{ width: 'calc(100% + 24px)', height: 'calc(100% + 24px)', position: 'absolute', top: '-12px', left: '-12px', border: 'none' }} title="Certificate PDF" scrolling="no" />
@@ -284,7 +284,7 @@ export default function AboutScreen() {
             <MaterialCommunityIcons name="close" size={24} color="#fff" />
           </Pressable>
           {selectedCert?.file_url && (
-            selectedCert.file_url.toLowerCase().endsWith('.pdf') ? (
+            isPdfUrl(selectedCert.file_url) ? (
               Platform.OS === 'web' ? (
                 <div style={{ height: '100%', maxWidth: '100%', aspectRatio: 1.414, position: 'relative', overflow: 'hidden' }}>
                   <iframe
@@ -389,6 +389,11 @@ function NativeCertPdfViewer({ url }: { url: string }) {
       )}
     </View>
   );
+}
+
+function isPdfUrl(url: string): boolean {
+  const clean = url.toLowerCase().split('?')[0].split('#')[0];
+  return clean.endsWith('.pdf');
 }
 
 function SkillLevel({ level }: { level: number }) {
