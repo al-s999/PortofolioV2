@@ -1,4 +1,4 @@
-import { ScrollView, View, Pressable, Text, Image, StyleSheet, Platform, useWindowDimensions, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Pressable, Text, Image, StyleSheet, Platform, useWindowDimensions, ActivityIndicator, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import NetInfo from '@react-native-community/netinfo';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -285,7 +285,7 @@ export default function AboutScreen() {
           </Pressable>
           {selectedCert?.file_url && (
             isPdfUrl(selectedCert.file_url) ? (
-              Platform.OS === 'web' ? (
+              Platform.OS === 'web' && isWeb ? (
                 <div style={{ height: '100%', maxWidth: '100%', aspectRatio: 1.414, position: 'relative', overflow: 'hidden' }}>
                   <iframe
                     src={`${selectedCert?.file_url}#page=1&toolbar=0&navpanes=0&scrollbar=0&view=Fit`}
@@ -294,6 +294,8 @@ export default function AboutScreen() {
                     scrolling="no"
                   />
                 </div>
+              ) : Platform.OS === 'web' && !isWeb ? (
+                <MobileWebCertPdfViewer key={selectedCert.file_url} url={selectedCert.file_url} />
               ) : (
                 <NativeCertPdfViewer key={selectedCert.file_url} url={selectedCert.file_url} />
               )
@@ -304,6 +306,35 @@ export default function AboutScreen() {
         </View>
       </Modal>
     </>
+  );
+}
+
+function MobileWebCertPdfViewer({ url }: { url: string }) {
+  const viewerUrl = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+
+  const openRawPdf = () => {
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url);
+    }
+  };
+
+  return (
+    <div style={{ width: '100%' }}>
+      <Text className="text-gray-500 dark:text-gray-400 text-sm mb-2 text-center">Memuat preview…</Text>
+      <iframe
+        title="Certificate PDF"
+        src={viewerUrl}
+        style={{ width: '100%', height: 'min(62vh, 100%)', minHeight: 320, border: 'none' }}
+      />
+      <View className="flex-row flex-wrap items-center justify-center gap-2 mt-3 px-4 pb-2">
+        <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">Jika preview kosong, pakai tombol ini.</Text>
+        <Pressable onPress={openRawPdf} className="px-6 py-3 rounded-full bg-primary-600">
+          <Text className="text-white font-semibold">Buka PDF</Text>
+        </Pressable>
+      </View>
+    </div>
   );
 }
 
