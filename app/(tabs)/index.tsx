@@ -74,7 +74,8 @@ export default function HomeScreen() {
 
   const featuredProjects = projects?.slice(0, 3) ?? [];
 
-  // Toast promo tiap launch di home: install app (web/PWA) atau buka di browser (native).
+  // Toast promo tiap launch di home: install app (web/PWA saja).
+  // Native (iOS/Android): tidak ada promo toast.
   // Persistent — hanya tombol close (X) yang menutupnya.
   const promoShown = useRef(false);
   useEffect(() => {
@@ -131,23 +132,8 @@ export default function HomeScreen() {
       };
     }
 
-    const siteUrl = process.env.EXPO_PUBLIC_SITE_URL;
-    if (!siteUrl) {
-      if (__DEV__) console.warn('[promo] EXPO_PUBLIC_SITE_URL belum diisi — toast browser disembunyikan.');
-      return;
-    }
-    showToast({
-      type: 'info',
-      title: 'Buka di browser',
-      description: 'Lihat portfolio ini di browser HP kamu.',
-      persistent: true,
-      action: {
-        label: 'Buka',
-        onPress: () => {
-          Linking.openURL(siteUrl).catch(() => {});
-        },
-      },
-    });
+    // Non-web (native app): tidak ada promo toast.
+    return;
   }, []);
 
   const toggleTheme = () => {
@@ -315,10 +301,10 @@ export default function HomeScreen() {
                   animate={{ opacity: 1, translateY: 0 }}
                   transition={{ type: 'timing', delay: 400, duration: 600 }}
                 >
-                  <Text className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-6">
+                  <Text className={cn('text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-6', !isWeb && 'text-center')}>
                     Featured Skills
                   </Text>
-                  <View className="flex-row flex-wrap gap-4">
+                  <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                     {aboutMe.skills.filter(s => s.show_on_home).map((skill) => (
                       <View key={skill.name} className="w-24 h-24 rounded-2xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border items-center justify-center shadow-sm hover:border-primary-500/30 transition-colors">
                         {getSkillIcon(skill.name, isDark)}
