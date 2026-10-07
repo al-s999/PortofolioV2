@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Avatar } from '@/components/ui/Avatar';
 import { useProjects } from '@/lib/queries';
 import { useAboutMe } from '@/lib/queries';
+import { buildSeoFromAboutMe } from '@/lib/seo';
 
 import { MotiView } from 'moti';
 import { useScrollNav } from '@/components/ScrollContext';
@@ -54,6 +55,33 @@ const getSkillIcon = (name: string, isDark: boolean) => {
   if (n === 'r' || n === 'r studio') return <MaterialCommunityIcons name="language-r" size={32} color="#276DC3" />;
   return <Code2 size={32} color={isDark ? '#d1d5db' : '#4b5563'} />;
 };
+
+export async function generateMetadata() {
+  try {
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
+      return buildSeoFromAboutMe(null, siteUrl);
+    }
+
+    const res = await fetch(`${supabaseUrl}/rest/v1/about_me?select=*&order=updated_at.desc&limit=1`, {
+      headers: {
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+      },
+    });
+
+    const data = await res.json();
+    const aboutMe = Array.isArray(data) && data.length > 0 ? data[0] : (data?.[0] ?? null);
+    const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
+    return buildSeoFromAboutMe(aboutMe, siteUrl);
+  } catch {
+    const siteUrl = process.env.EXPO_PUBLIC_URL || 'https://example.com';
+    return buildSeoFromAboutMe(null, siteUrl);
+  }
+}
 
 export default function HomeScreen() {
   const router = useRouter();

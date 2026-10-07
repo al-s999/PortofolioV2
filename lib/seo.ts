@@ -24,7 +24,7 @@ export function buildSeoFromAboutMe(
     ? cleanedContent.slice(0, 155)
     : `Portofolio ${name} — ${profession}.`;
 
-  const skillNames = aboutMe?.skills?.map((s) => s.name) ?? [];
+  const skillNames = aboutMe?.skills?.map((s) => s.name).filter((name) => name) ?? [];
   const topSkills = skillNames.slice(0, 8);
   const keywords = `${profession}, ${topSkills.join(', ')}, portfolio`;
 
