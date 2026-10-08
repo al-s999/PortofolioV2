@@ -21,6 +21,8 @@ export interface Experience {
   technologies: string[];
 }
 
+export type I18nMap = Record<string, Record<string, unknown>>;
+
 export interface AboutMe {
   id: string;
   nickname?: string;
@@ -34,6 +36,7 @@ export interface AboutMe {
   education?: Education[];
   experience?: Experience[];
   certificates?: Certificate[];
+  i18n?: I18nMap;
   updated_at: string;
 }
 
@@ -61,6 +64,7 @@ export interface Project {
   featured: boolean;
   order_index: number;
   content_blocks?: ContentBlock[];
+  i18n?: I18nMap;
   created_at: string;
   updated_at: string;
 }
@@ -81,6 +85,7 @@ export interface Contact {
   icon: string | null | undefined;
   order_index: number;
   is_active: boolean;
+  i18n?: I18nMap;
   created_at: string;
 }
 
