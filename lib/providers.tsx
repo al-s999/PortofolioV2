@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider, onlineManager } from '@tanstack/react
 import NetInfo from '@react-native-community/netinfo';
 import { useState, ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/Toast';
+import { LanguageProvider } from '@/lib/i18n/LanguageContext';
 
 onlineManager.setEventListener((setOnline) =>
   NetInfo.addEventListener((state) =>
@@ -27,9 +28,11 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        {children}
-      </ToastProvider>
+      <LanguageProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
