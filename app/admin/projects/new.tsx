@@ -17,6 +17,8 @@ import { useCreateProject } from '@/lib/queries';
 import { useUpdateProject } from '@/lib/queries';
 import { useDeleteProject } from '@/lib/queries';
 import { useUploadImage } from '@/lib/queries';
+import { withAutoTranslations } from '@/lib/queries';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useToast } from '@/components/ui/Toast';
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller, Path } from 'react-hook-form';
@@ -71,6 +73,9 @@ export default function AdminProjectNewScreen() {
   const { showToast } = useToast();
 
   const [saving, setSaving] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [i18nPending, setI18nPending] = useState(false);
+  const { lang } = useLanguage();
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -82,6 +87,7 @@ export default function AdminProjectNewScreen() {
     handleSubmit,
     reset,
     setValue,
+    getValues,
     watch,
     formState: { errors, isDirty },
   } = useForm<ProjectForm>({
@@ -238,23 +244,84 @@ export default function AdminProjectNewScreen() {
     }
   };
 
+  const pendingToast = () => ({
+    type: 'warning' as const,
+    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
+    description:
+      lang === 'id'
+        ? 'Proyek tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
+        : 'Project saved. Auto-translation failed — press "Translate ulang".',
+  });
+
+  const existingI18n =
+    isEditing && projectId
+      ? ((projects?.find((p) => p.id === projectId) as any)?.i18n ?? {})
+      : {};
+
   const handleSubmitForm = async (data: any) => {
     setSaving(true);
     Keyboard.dismiss();
 
     try {
+      // Dual-direction (source lang unknown): fills i18n.id + i18n.en.
+      // Translation failure is non-fatal — source still commits.
+      const { payload, pending } = await withAutoTranslations('projects', {
+        ...data,
+        i18n: existingI18n,
+      });
       if (isEditing && projectId) {
-        await updateProject.mutateAsync({ id: projectId, ...data });
-        showToast({ type: 'success', title: 'Updated', description: 'Project has been updated.' });
+        await updateProject.mutateAsync({ id: projectId, ...payload });
+        setI18nPending(pending);
+        if (pending) {
+          showToast(pendingToast());
+        } else {
+          showToast({ type: 'success', title: 'Updated', description: 'Project has been updated.' });
+        }
       } else {
-        await createProject.mutateAsync(data);
-        showToast({ type: 'success', title: 'Created', description: 'Project has been created.' });
+        await createProject.mutateAsync(payload);
+        if (pending) {
+          // Create navigates away, so no badge survives — the single
+          // warning toast is the pending signal; re-translate from edit.
+          showToast(pendingToast());
+        } else {
+          showToast({ type: 'success', title: 'Created', description: 'Project has been created.' });
+        }
         router.replace('/admin/projects');
       }
     } catch (error: any) {
       showToast({ type: 'error', title: 'Failed', description: error.message });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // "Translate ulang": re-runs full collect+translate+merge on current values.
+  const handleTranslateAgain = async () => {
+    if (!isEditing || !projectId) return;
+    setTranslating(true);
+    try {
+      const { payload, pending } = await withAutoTranslations('projects', {
+        ...getValues(),
+        i18n: existingI18n,
+      });
+      await updateProject.mutateAsync({ id: projectId, ...payload });
+      setI18nPending(pending);
+      if (pending) {
+        showToast(pendingToast());
+      } else {
+        showToast({
+          type: 'success',
+          title: lang === 'id' ? 'Terjemahan selesai' : 'Translation complete',
+          description:
+            lang === 'id'
+              ? 'Terjemahan ID/EN telah diperbarui.'
+              : 'ID/EN translations have been updated.',
+        });
+      }
+    } catch (error: any) {
+      showToast({ type: 'error', title: 'Failed', description: error.message });
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -298,6 +365,24 @@ export default function AdminProjectNewScreen() {
               {isEditing && (
                 <Button variant="destructive-ghost" onPress={() => setDeleteModal(true)} leftIcon={<Trash2 size={18} className="text-red-500" />}>
                   Delete
+                </Button>
+              )}
+              {i18nPending && (
+                <View className="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800 self-center">
+                  <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
+                    {lang === 'id' ? 'Terjemahan tertunda' : 'Translation pending'}
+                  </Text>
+                </View>
+              )}
+              {i18nPending && isEditing && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={handleTranslateAgain}
+                  loading={translating}
+                  disabled={saving || translating}
+                >
+                  Translate ulang
                 </Button>
               )}
               <Button

@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/AuthProvider';
+import {
+  collectTranslatables,
+  mergeTranslations,
+  translateViaEdge,
+} from '@/lib/i18n/autoTranslate';
+import type { TranslatableTable } from '@/lib/i18n/autoTranslate';
 import type { AboutMe, Project, Contact, Skill } from '@/types';
 
 const QUERY_KEYS = {
@@ -335,4 +341,98 @@ export function useUploadImage() {
       return publicUrl;
     },
   });
+}
+
+// --- i18n: localized reads (Task 9) ------------------------------------------
+// `select('*')` above already returns the `i18n` JSONB mirror column, so these
+// selectors stay in sync with every existing hook without touching them.
+
+/** Read a (possibly nested, dot-path) value from an object/array tree. */
+function getPathValue(obj: unknown, path: string): unknown {
+  if (obj == null || typeof obj !== 'object') return undefined;
+  const segments = path.split('.');
+  let cur: any = obj;
+  for (const seg of segments) {
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = cur[/^\d+$/.test(seg) ? Number(seg) : seg];
+  }
+  return cur;
+}
+
+/**
+ * Localized field read with EN/source fallback (never blank/throw).
+ * Reads `row.i18n[lang][field]` (nested dot paths supported, e.g.
+ * `education.0.degree`, `content_blocks.1.caption`), then the source
+ * `row[field]`, then `fallback`.
+ */
+export function localized<T = string>(
+  row: any,
+  lang: 'en' | 'id',
+  field: string,
+  fallback?: T,
+): T {
+  const hit = getPathValue(row?.i18n?.[lang], field);
+  if (typeof hit === 'string') {
+    if (hit.length > 0) return hit as T;
+  } else if (hit !== undefined && hit !== null) {
+    return hit as T;
+  }
+  const base = getPathValue(row, field);
+  if (base !== undefined && base !== null) return base as T;
+  return fallback as T;
+}
+
+/** Pick several fields through {@link localized} in one call. */
+export function pickLang(
+  row: any,
+  lang: 'en' | 'id',
+  fields: string[],
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const field of fields) {
+    out[field] = localized(row, lang, field, getPathValue(row, field));
+  }
+  return out;
+}
+
+// --- i18n: admin save helper (Task 9) ----------------------------------------
+
+/**
+ * Fill both `i18n.id` and `i18n.en` mirrors for an admin save payload.
+ *
+ * The free-text source language is unknown (auto-detect), so both directions
+ * are translated in parallel and merged; whatever succeeds is kept and any
+ * pre-existing `row.i18n` mirrors are preserved by `mergeTranslations`.
+ *
+ * NEVER throws for translation failures (edge function down, quota out,
+ * secret unset): the source payload is still returned with `pending: true`
+ * so the caller can commit it and show a pending badge instead.
+ * Skips the network entirely when there is nothing translatable.
+ */
+export async function withAutoTranslations(
+  table: TranslatableTable,
+  data: any,
+): Promise<{ payload: any; pending: boolean }> {
+  const items = collectTranslatables(table, data);
+  if (items.length === 0) return { payload: data, pending: false };
+
+  const texts = items.map((item) => item.text);
+  const [idRes, enRes] = await Promise.allSettled([
+    translateViaEdge(texts, 'ID'),
+    translateViaEdge(texts, 'EN'),
+  ]);
+
+  let payload = data;
+  let pending = false;
+  if (idRes.status === 'fulfilled') {
+    payload = mergeTranslations(payload, items, idRes.value, 'id');
+  } else {
+    pending = true;
+  }
+  if (enRes.status === 'fulfilled') {
+    payload = mergeTranslations(payload, items, enRes.value, 'en');
+  } else {
+    pending = true;
+  }
+  return { payload, pending };
 }

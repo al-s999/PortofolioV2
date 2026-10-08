@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { useContacts } from '@/lib/queries';
+import { localized } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -282,6 +283,7 @@ function BentoContact({ contact, onPress, onCopy, copied }: { contact: any; onPr
   const Icon = contactIcons[contact.type] ?? contactIcons.custom;
   const { width } = useWindowDimensions();
   const isWeb = width >= 768;
+  const { lang } = useLanguage();
 
   return (
     <Card variant="outlined" className={cn(isWeb && 'h-full hover:border-primary-300 dark:hover:border-primary-700 transition-colors group cursor-pointer')}>
@@ -310,7 +312,7 @@ function BentoContact({ contact, onPress, onCopy, copied }: { contact: any; onPr
           </View>
         </View>
         <View>
-          <Text className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">{contact.label || contact.type}</Text>
+          <Text className="text-gray-500 dark:text-gray-400 text-sm mb-1 font-medium">{localized(contact, lang, 'label', contact.label || contact.type)}</Text>
           <View className="flex-row items-center gap-2">
             <Text className="font-bold text-gray-900 dark:text-gray-100 truncate text-base flex-shrink-1">{contact.value}</Text>
             <Pressable onPress={(e) => { e.stopPropagation(); onCopy(); }} className="p-1 opacity-50 hover:opacity-100">

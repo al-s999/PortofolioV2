@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Avatar } from '@/components/ui/Avatar';
 import { Modal } from '@/components/ui/Modal';
 import { useAboutMe } from '@/lib/queries';
+import { localized } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useScrollNav } from '@/components/ScrollContext';
 import { MotiView } from 'moti';
@@ -31,7 +32,7 @@ export default function AboutScreen() {
   const { onScroll } = useScrollNav();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [selectedCert, setSelectedCert] = useState<any>(null);
 
   const skillsByCategory = aboutMe?.skills?.reduce((acc, skill) => {
@@ -105,7 +106,7 @@ export default function AboutScreen() {
                 </Text>
                 <Card variant="outlined" className="p-6 shadow-sm">
                   <Text className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line text-lg">
-                    {aboutMe.content}
+                    {localized(aboutMe, lang, 'content', aboutMe?.content ?? '')}
                   </Text>
                 </Card>
               </MotiView>
@@ -172,7 +173,15 @@ export default function AboutScreen() {
               <Card variant="outlined" className="p-6 shadow-sm">
                 <View className="space-y-6">
                   {aboutMe?.experience?.length ? aboutMe.experience.map((exp, index) => (
-                    <ExperienceItem key={index} experience={exp} isLast={index === aboutMe.experience!.length - 1} />
+                    <ExperienceItem
+                      key={index}
+                      experience={{
+                        ...exp,
+                        role: localized(aboutMe, lang, `experience.${index}.role`, exp.role),
+                        description: localized(aboutMe, lang, `experience.${index}.description`, exp.description),
+                      }}
+                      isLast={index === aboutMe.experience!.length - 1}
+                    />
                   )) : (
                     <Text className="text-gray-500 dark:text-gray-400">{t('about.noExperience')}</Text>
                   )}
@@ -192,7 +201,15 @@ export default function AboutScreen() {
               <Card variant="outlined" className="p-6 shadow-sm">
                 <View className="space-y-6">
                   {aboutMe?.education?.length ? aboutMe.education.map((edu, index) => (
-                    <EducationItem key={index} education={edu} isLast={index === aboutMe.education!.length - 1} />
+                    <EducationItem
+                      key={index}
+                      education={{
+                        ...edu,
+                        degree: localized(aboutMe, lang, `education.${index}.degree`, edu.degree),
+                        description: localized(aboutMe, lang, `education.${index}.description`, edu.description ?? ''),
+                      }}
+                      isLast={index === aboutMe.education!.length - 1}
+                    />
                   )) : (
                     <Text className="text-gray-500 dark:text-gray-400">{t('about.noEducation')}</Text>
                   )}

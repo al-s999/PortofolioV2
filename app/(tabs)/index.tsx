@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Avatar } from '@/components/ui/Avatar';
 import { useProjects } from '@/lib/queries';
 import { useAboutMe } from '@/lib/queries';
+import { localized } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 
 import { MotiView } from 'moti';
@@ -70,7 +71,7 @@ export default function HomeScreen() {
   const { data: projects, isLoading: projectsLoading, isPaused: projectsPaused, isError: projectsError, error: projectsQueryError, refetch: refetchProjects } = useProjects(true);
   const { onScroll } = useScrollNav();
   const { showToast, hideToast } = useToast();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -242,10 +243,10 @@ export default function HomeScreen() {
                   <Text className="text-primary-600 dark:text-primary-400">{aboutMe?.nickname || 'Ahmad Rosyid'}</Text>
                 </Text>
                 <Text className={cn('text-gray-600 dark:text-gray-300 mb-8 leading-relaxed font-medium', isWeb ? 'text-xl' : 'text-lg')}>
-                  {aboutMe?.profession || 'Web Developer & Data Scientist'}
+                  {localized(aboutMe, lang, 'profession', aboutMe?.profession || 'Web Developer & Data Scientist')}
                 </Text>
                 <Text className={cn('text-gray-500 dark:text-gray-400 mb-8 leading-relaxed', isWeb ? 'text-lg' : 'text-base')}>
-                  {aboutMe?.content ?? 'I build beautiful, accessible, and performant digital experiences.'}
+                  {localized(aboutMe, lang, 'content', aboutMe?.content ?? 'I build beautiful, accessible, and performant digital experiences.')}
                 </Text>
                 <View className="flex-row flex-wrap gap-4">
                   <Button size="lg" className="rounded-full shadow-lg shadow-primary-500/30" rightIcon={<ArrowRight size={18} />} onPress={() => router.push('/projects')}>
@@ -299,7 +300,7 @@ export default function HomeScreen() {
                           {aboutMe?.full_name || "Ahmad Rosyid A."}
                         </Text>
                         <Text className="text-sm font-medium text-primary-600 dark:text-primary-400 mt-1">
-                          {aboutMe?.profession || "Web & Data Scientist"}
+                          {localized(aboutMe, lang, 'profession', aboutMe?.profession || "Web & Data Scientist")}
                         </Text>
                       </View>
                     </View>
@@ -464,7 +465,7 @@ export default function HomeScreen() {
 }
 
 function ProjectCard({ project, onPress, isWeb }: { project: any; onPress?: () => void; isWeb?: boolean }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   return (
     <Pressable
       onPress={onPress}
@@ -483,11 +484,11 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress?: () =
         <View className={cn('flex-col shrink-0', isWeb && 'flex-1')}>
           <View className="flex-row items-start justify-between gap-2 mb-2">
             <Text className="font-semibold text-gray-900 dark:text-gray-100 shrink-0" numberOfLines={1}>
-              {project.title}
+              {localized(project, lang, 'title', project.title)}
             </Text>
           </View>
           <Text className="text-gray-600 dark:text-gray-400 text-sm mb-4 shrink-0" numberOfLines={2}>
-            {project.short_description ?? project.description?.slice(0, 100) ?? t('common.noDescription')}
+            {localized(project, lang, 'short_description', project.short_description ?? project.description?.slice(0, 100) ?? t('common.noDescription'))}
           </Text>
           <View className="flex-row flex-wrap gap-1.5 mb-4">
             {project.tech_stack?.slice(0, 4).map((tech: string) => (

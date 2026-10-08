@@ -12,7 +12,8 @@ import { Select } from '@/components/ui/Select';
 import { Separator } from '@/components/ui/Separator';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Modal } from '@/components/ui/Modal';
-import { useAboutMe, useUpdateAboutMe, useUploadImage } from '@/lib/queries';
+import { useAboutMe, useUpdateAboutMe, useUploadImage, withAutoTranslations } from '@/lib/queries';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useToast } from '@/components/ui/Toast';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -112,6 +113,9 @@ export default function AdminAboutScreen() {
   const updateAboutMe = useUpdateAboutMe();
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [translating, setTranslating] = useState(false);
+  const [i18nPending, setI18nPending] = useState(false);
+  const { lang } = useLanguage();
   const [previewMode, setPreviewMode] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; type: 'skill' | 'education' | 'experience' | 'certificate' | null; index: number | null }>({ open: false, type: null, index: null });
   const { colorScheme } = useColorScheme();
@@ -227,6 +231,7 @@ export default function AdminAboutScreen() {
     control,
     handleSubmit,
     reset,
+    getValues,
     formState: { errors, isDirty },
     setValue,
     watch,
@@ -288,12 +293,21 @@ export default function AdminAboutScreen() {
     }
   }, [aboutMe, reset]);
 
+  const pendingToast = () => ({
+    type: 'warning' as const,
+    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
+    description:
+      lang === 'id'
+        ? 'Konten tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
+        : 'Content saved. Auto-translation failed — press "Translate ulang".',
+  });
+
   const onSubmit = async (data: AboutForm) => {
     setSaving(true);
     Keyboard.dismiss();
 
     try {
-      await updateAboutMe.mutateAsync({
+      const source = {
         nickname: data.nickname,
         full_name: data.full_name,
         profession: data.profession,
@@ -305,13 +319,24 @@ export default function AdminAboutScreen() {
         education: data.education,
         experience: data.experience,
         certificates: data.certificates as any,
-      });
+        // Preserve existing mirrors; mergeTranslations keeps the rest.
+        i18n: (aboutMe as any)?.i18n ?? {},
+      };
+      // Dual-direction (source lang unknown): fills i18n.id + i18n.en.
+      // Translation failure is non-fatal — source still commits.
+      const { payload, pending } = await withAutoTranslations('about_me', source);
+      await updateAboutMe.mutateAsync(payload);
+      setI18nPending(pending);
 
-      showToast({
-        type: 'success',
-        title: 'Saved!',
-        description: 'About Me section has been updated.',
-      });
+      if (pending) {
+        showToast(pendingToast());
+      } else {
+        showToast({
+          type: 'success',
+          title: 'Saved!',
+          description: 'About Me section has been updated.',
+        });
+      }
     } catch (error: any) {
       showToast({
         type: 'error',
@@ -320,6 +345,42 @@ export default function AdminAboutScreen() {
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // "Translate ulang": re-runs full collect+translate+merge on current values.
+  const handleTranslateAgain = async () => {
+    const values = getValues();
+    setTranslating(true);
+    try {
+      const source = {
+        ...values,
+        certificates: values.certificates as any,
+        i18n: (aboutMe as any)?.i18n ?? {},
+      };
+      const { payload, pending } = await withAutoTranslations('about_me', source);
+      await updateAboutMe.mutateAsync(payload);
+      setI18nPending(pending);
+      if (pending) {
+        showToast(pendingToast());
+      } else {
+        showToast({
+          type: 'success',
+          title: lang === 'id' ? 'Terjemahan selesai' : 'Translation complete',
+          description:
+            lang === 'id'
+              ? 'Terjemahan ID/EN telah diperbarui.'
+              : 'ID/EN translations have been updated.',
+        });
+      }
+    } catch (error: any) {
+      showToast({
+        type: 'error',
+        title: 'Failed to save',
+        description: error.message ?? 'Something went wrong',
+      });
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -486,10 +547,28 @@ export default function AdminAboutScreen() {
                 About Me
               </Text>
             </View>
-            <View className="flex-row gap-3">
+            <View className="flex-row gap-3 items-center">
               <Button variant="ghost" onPress={handlePreview} leftIcon={<Eye size={18} className="text-gray-700 dark:text-gray-300" />}>
                 Preview
               </Button>
+              {i18nPending && (
+                <View className="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800">
+                  <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
+                    {lang === 'id' ? 'Terjemahan tertunda' : 'Translation pending'}
+                  </Text>
+                </View>
+              )}
+              {i18nPending && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onPress={handleTranslateAgain}
+                  loading={translating}
+                  disabled={saving || translating}
+                >
+                  Translate ulang
+                </Button>
+              )}
               <Button
                 rightIcon={<Save size={18} />}
                 onPress={() => handleSubmit(onSubmit as any)()}

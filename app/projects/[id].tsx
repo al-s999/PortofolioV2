@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, View, Text, Image, Linking, StyleSheet, Pressable, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useProject } from '@/lib/queries';
+import { localized } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ArrowLeft, Github, ExternalLink } from '@/components/ui';
@@ -17,7 +18,7 @@ export default function ProjectDetailScreen() {
   const router = useRouter();
   const { data: project, isLoading, isPaused, error, refetch } = useProject(id as string);
   const { onScroll } = useScrollNav();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   if (isPaused && !project) {
     return (
@@ -103,11 +104,11 @@ export default function ProjectDetailScreen() {
           >
             {/* Header Content */}
             <Text className={cn('font-bold text-gray-900 dark:text-white mb-4', isWeb ? 'text-4xl lg:text-5xl' : 'text-3xl')}>
-              {project.title}
+              {localized(project, lang, 'title', project.title)}
             </Text>
 
             <Text className={cn('text-gray-500 dark:text-gray-400 leading-relaxed mb-6', isWeb ? 'text-xl' : 'text-lg')}>
-              {project.short_description || project.description}
+              {localized(project, lang, 'short_description', project.short_description || project.description)}
             </Text>
 
             <View className="flex-row flex-wrap gap-2 mb-8">
@@ -143,7 +144,7 @@ export default function ProjectDetailScreen() {
         >
           <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('projects.detail.aboutProject')}</Text>
           <Text className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed mb-12">
-            {project.description}
+            {localized(project, lang, 'description', project.description)}
           </Text>
 
           {/* Dynamic Content Blocks */}
@@ -153,11 +154,12 @@ export default function ProjectDetailScreen() {
                 if (block.type === 'text') {
                   return (
                     <Text key={block.id || index} className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
-                      {block.content}
+                      {localized(project, lang, `content_blocks.${index}.content`, block.content)}
                     </Text>
                   );
                 }
                 if (block.type === 'image' && block.image_url) {
+                  const caption: string = localized(project, lang, `content_blocks.${index}.caption`, block.caption ?? '');
                   return (
                     <View key={block.id || index} className="w-full">
                       <Image
@@ -166,9 +168,9 @@ export default function ProjectDetailScreen() {
                         resizeMode="cover"
                         className="shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-200 dark:border-dark-border"
                       />
-                      {!!block.caption && (
+                      {!!caption && (
                         <Text className="text-center text-sm text-gray-500 dark:text-gray-400 mt-3 font-medium">
-                          {block.caption}
+                          {caption}
                         </Text>
                       )}
                     </View>

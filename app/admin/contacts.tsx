@@ -15,6 +15,8 @@ import { useContacts } from '@/lib/queries';
 import { useCreateContact } from '@/lib/queries';
 import { useUpdateContact } from '@/lib/queries';
 import { useDeleteContact } from '@/lib/queries';
+import { withAutoTranslations } from '@/lib/queries';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useToast } from '@/components/ui/Toast';
 import { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
@@ -67,6 +69,47 @@ export default function AdminContactsScreen() {
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; contact: any }>({ open: false, contact: null });
   const [editModal, setEditModal] = useState<{ open: boolean; contact: any }>({ open: false, contact: null });
   const [newContactModal, setNewContactModal] = useState(false);
+  const [pendingIds, setPendingIds] = useState<Record<string, boolean>>({});
+  const [retranslatingId, setRetranslatingId] = useState<string | null>(null);
+  const { lang } = useLanguage();
+
+  const pendingToast = () => ({
+    type: 'warning' as const,
+    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
+    description:
+      lang === 'id'
+        ? 'Kontak tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
+        : 'Contact saved. Auto-translation failed — press "Translate ulang".',
+  });
+
+  // "Translate ulang" for a single row: re-runs full collect+translate+merge.
+  const handleRetranslate = async (contact: any, data?: ContactForm) => {
+    if (!contact?.id) return;
+    const src = data ?? contact;
+    setRetranslatingId(contact.id);
+    try {
+      const { payload, pending } = await withAutoTranslations('contacts', {
+        type: src.type,
+        label: src.label,
+        value: src.value,
+        icon: src.icon ?? '',
+        order_index: src.order_index ?? 0,
+        is_active: src.is_active ?? true,
+        i18n: contact?.i18n ?? {},
+      });
+      await updateContact.mutateAsync({ id: contact.id, ...payload });
+      setPendingIds((m) => ({ ...m, [contact.id]: pending }));
+      if (pending) {
+        showToast(pendingToast());
+      } else {
+        showToast({ type: 'success', title: 'Updated', description: 'Contact has been updated.' });
+      }
+    } catch (error: any) {
+      showToast({ type: 'error', title: 'Failed', description: error.message });
+    } finally {
+      setRetranslatingId(null);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -164,6 +207,9 @@ export default function AdminContactsScreen() {
                 <ContactRow
                   key={contact.id}
                   contact={contact}
+                  translationPending={pendingIds[contact.id] === true}
+                  retranslating={retranslatingId === contact.id}
+                  onRetranslate={() => handleRetranslate(contact)}
                   onEdit={() => setEditModal({ open: true, contact })}
                   onDelete={() => setDeleteModal({ open: true, contact })}
                   onToggleActive={() => {
@@ -199,14 +245,34 @@ export default function AdminContactsScreen() {
         visible={newContactModal || editModal.open}
         onClose={() => { setNewContactModal(false); setEditModal({ open: false, contact: null }); }}
         contact={editModal.contact}
+        onRetranslate={async (data) => {
+          if (editModal.contact) await handleRetranslate(editModal.contact, data);
+        }}
         onSubmit={async (data) => {
           try {
             if (editModal.contact) {
-              await updateContact.mutateAsync({ id: editModal.contact.id, ...data });
-              showToast({ type: 'success', title: 'Updated', description: 'Contact has been updated.' });
+              // Dual-direction (source lang unknown): fills i18n.id + i18n.en.
+              // Translation failure is non-fatal — source still commits.
+              const { payload, pending } = await withAutoTranslations('contacts', {
+                ...data,
+                i18n: editModal.contact?.i18n ?? {},
+              });
+              await updateContact.mutateAsync({ id: editModal.contact.id, ...payload });
+              setPendingIds((m) => ({ ...m, [editModal.contact.id]: pending }));
+              if (pending) {
+                showToast(pendingToast());
+              } else {
+                showToast({ type: 'success', title: 'Updated', description: 'Contact has been updated.' });
+              }
             } else {
-              await createContact.mutateAsync(data);
-              showToast({ type: 'success', title: 'Created', description: 'Contact has been added.' });
+              const { payload, pending } = await withAutoTranslations('contacts', data);
+              const created = (await createContact.mutateAsync(payload)) as any;
+              if (pending) {
+                if (created?.id) setPendingIds((m) => ({ ...m, [created.id]: true }));
+                showToast(pendingToast());
+              } else {
+                showToast({ type: 'success', title: 'Created', description: 'Contact has been added.' });
+              }
             }
             setNewContactModal(false);
             setEditModal({ open: false, contact: null });
@@ -219,14 +285,22 @@ export default function AdminContactsScreen() {
   );
 }
 
-function ContactRow({ contact, onEdit, onDelete, onToggleActive }: {
+function ContactRow({ contact, onEdit, onDelete, onToggleActive, translationPending, retranslating, onRetranslate }: {
   contact: any;
   onEdit: () => void;
   onDelete: () => void;
   onToggleActive: () => void;
+  translationPending?: boolean;
+  retranslating?: boolean;
+  onRetranslate?: () => void;
 }) {
   const { colorScheme } = useColorScheme();
   const Icon = contactIcons[contact.type] ?? contactIcons.custom;
+  // Legacy rows predate the i18n mirror — offer backfill alongside pending.
+  const needsTranslation =
+    translationPending === true ||
+    contact?.i18n?.id?.label == null ||
+    contact?.i18n?.en?.label == null;
 
   return (
     <Card variant="outlined" className={cn(!contact.is_active && 'opacity-50')}>
@@ -252,6 +326,25 @@ function ContactRow({ contact, onEdit, onDelete, onToggleActive }: {
               </View>
             </View>
             <Text className="text-gray-600 dark:text-gray-400 text-sm truncate flex-1">{contact.value}</Text>
+            {translationPending === true && (
+              <View className="self-start mt-1.5 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800">
+                <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
+                  Translation pending
+                </Text>
+              </View>
+            )}
+            {needsTranslation && onRetranslate && (
+              <Pressable
+                onPress={onRetranslate}
+                disabled={retranslating === true}
+                className="self-start mt-1.5"
+                accessibilityLabel="Translate ulang"
+              >
+                <Text className="text-primary-600 dark:text-primary-400 text-xs font-semibold">
+                  {retranslating === true ? 'Translating…' : 'Translate ulang'}
+                </Text>
+              </Pressable>
+            )}
           </View>
           <View className="flex-col items-end gap-2">
             <View className="flex-row gap-1">
@@ -293,15 +386,17 @@ function ContactRowSkeleton() {
   );
 }
 
-function ContactFormModal({ visible, onClose, contact, onSubmit }: {
+function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }: {
   visible: boolean;
   onClose: () => void;
   contact: any;
   onSubmit: (data: ContactForm) => Promise<void>;
+  onRetranslate?: (data: ContactForm) => Promise<void>;
 }) {
   const isEditing = !!contact;
   const { showToast } = useToast();
   const [submitting, setSubmitting] = useState(false);
+  const [translating, setTranslating] = useState(false);
 
   const {
     register,
@@ -355,6 +450,17 @@ function ContactFormModal({ visible, onClose, contact, onSubmit }: {
       await onSubmit(data);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // "Translate ulang": re-translate current values, keep the modal open.
+  const handleRetranslateSubmit = async (data: ContactForm) => {
+    if (!onRetranslate) return;
+    setTranslating(true);
+    try {
+      await onRetranslate(data);
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -421,6 +527,17 @@ function ContactFormModal({ visible, onClose, contact, onSubmit }: {
           <Button variant="ghost" onPress={onClose}>
             Cancel
           </Button>
+          {isEditing && onRetranslate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onPress={() => handleSubmit(handleRetranslateSubmit)()}
+              loading={translating}
+              disabled={submitting || translating}
+            >
+              Translate ulang
+            </Button>
+          )}
           <Button onPress={() => handleSubmit(handleFormSubmit)()} loading={submitting}>
             {isEditing ? 'Update' : 'Create'}
           </Button>

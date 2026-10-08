@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Separator } from '@/components/ui/Separator';
 import { useProjects } from '@/lib/queries';
+import { localized } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useEffect, useState } from 'react';
 import { useScrollNav } from '@/components/ScrollContext';
@@ -161,7 +162,7 @@ export default function ProjectsScreen() {
 }
 
 function ProjectCard({ project, onPress, isWeb }: { project: any; onPress: () => void; isWeb?: boolean }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   return (
     <Pressable onPress={onPress} className={cn('group', !isWeb && 'w-full shrink-0 self-start')}>
       <Card variant="outlined" className={cn(isWeb && 'h-full group-hover:shadow-xl transition-all duration-300')}>
@@ -177,11 +178,11 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress: () =>
         <View className={cn('flex-col shrink-0', isWeb && 'flex-1')}>
           <View className="flex-row items-start justify-between gap-2 mb-2">
             <Text className="font-semibold text-gray-900 dark:text-gray-100 shrink-0" numberOfLines={1}>
-              {project.title}
+              {localized(project, lang, 'title', project.title)}
             </Text>
           </View>
           <Text className="text-gray-600 dark:text-gray-400 text-sm mb-4 shrink-0" numberOfLines={3}>
-            {project.short_description ?? project.description?.slice(0, 120) ?? t('projects.noDescription')}
+            {localized(project, lang, 'short_description', project.short_description ?? project.description?.slice(0, 120) ?? t('projects.noDescription'))}
           </Text>
           <View className="flex-row flex-wrap gap-1.5 mb-4">
             {project.tech_stack?.slice(0, 5).map((tech: string) => (
