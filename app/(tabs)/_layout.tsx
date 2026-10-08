@@ -6,9 +6,11 @@ import NetInfo from '@react-native-community/netinfo';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'nativewind';
 import { ScrollProvider, useScrollNav } from '@/components/ScrollContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const unsub = NetInfo.addEventListener((state) => {
@@ -22,7 +24,7 @@ function OfflineBanner() {
   return (
     <View className="absolute top-0 left-0 right-0 z-50 bg-amber-500 px-4 py-2 items-center">
       <Text className="text-white text-xs font-semibold text-center">
-        Anda offline — periksa koneksi internet
+        {t('offline.banner')}
       </Text>
     </View>
   );
@@ -33,6 +35,7 @@ function InnerTabs() {
   const { colorScheme } = useColorScheme();
   const isWeb = width >= 768;
   const { isNavVisible } = useScrollNav();
+  const { t } = useLanguage();
   // Web: auto-hide on scroll. Mobile: always sticky at bottom.
   const hideOnScroll = isWeb;
   const navVisible = hideOnScroll ? isNavVisible : true;
@@ -86,10 +89,10 @@ function InnerTabs() {
         tabBarShowLabel: !isWeb,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: ({ focused, color }) => (<Home size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} fill={focused ? getStrokeColor(color) : 'none'} />) }} />
-      <Tabs.Screen name="about" options={{ title: 'About', tabBarIcon: ({ focused, color }) => (<User size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
-      <Tabs.Screen name="projects" options={{ title: 'Projects', tabBarIcon: ({ focused, color }) => (<FolderGit2 size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
-      <Tabs.Screen name="contact" options={{ title: 'Contact', tabBarIcon: ({ focused, color }) => (<Mail size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
+      <Tabs.Screen name="index" options={{ title: t('tabs.home'), tabBarIcon: ({ focused, color }) => (<Home size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} fill={focused ? getStrokeColor(color) : 'none'} />) }} />
+      <Tabs.Screen name="about" options={{ title: t('tabs.about'), tabBarIcon: ({ focused, color }) => (<User size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
+      <Tabs.Screen name="projects" options={{ title: t('tabs.projects'), tabBarIcon: ({ focused, color }) => (<FolderGit2 size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
+      <Tabs.Screen name="contact" options={{ title: t('tabs.contact'), tabBarIcon: ({ focused, color }) => (<Mail size={24} stroke={getStrokeColor(color)} strokeWidth={focused ? 3 : 2} />) }} />
     </Tabs>
   );
 }

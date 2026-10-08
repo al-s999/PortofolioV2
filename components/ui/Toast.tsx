@@ -83,10 +83,11 @@ export const Toast = forwardRef<View, ToastProps>(
             )}
           </View>
           {action && (
-            <Pressable onPress={action.onPress} className="flex-shrink-0 px-3 py-1.5">
-              <Text className="text-sm font-medium underline text-primary-600 dark:text-primary-400">
-                {action.label}
-              </Text>
+            <Pressable
+              onPress={action.onPress}
+              className="flex-shrink-0 px-4 py-2 rounded-full bg-primary-600 shadow-sm self-center active:opacity-90"
+            >
+              <Text className="text-sm font-semibold text-white">{action.label}</Text>
             </Pressable>
           )}
           <Pressable onPress={() => onClose(id)} className="flex-shrink-0 p-1 -mt-1 -mr-1">

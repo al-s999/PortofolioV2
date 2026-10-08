@@ -19,6 +19,7 @@ import { useScrollNav } from '@/components/ScrollContext';
 import * as WebBrowser from 'expo-web-browser';
 import NetInfo from '@react-native-community/netinfo';
 import { useToast } from '@/components/ui/Toast';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 // Tangkap event install PWA sepagi mungkin — module dievaluasi saat bundle
 // dimuat, jauh sebelum effect komponen terpasang (hindari kalah race).
@@ -69,6 +70,7 @@ export default function HomeScreen() {
   const { data: projects, isLoading: projectsLoading, isPaused: projectsPaused, isError: projectsError, error: projectsQueryError, refetch: refetchProjects } = useProjects(true);
   const { onScroll } = useScrollNav();
   const { showToast, hideToast } = useToast();
+  const { t } = useLanguage();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -79,55 +81,92 @@ export default function HomeScreen() {
 
   const featuredProjects = projects?.slice(0, 3) ?? [];
 
-  // Toast promo tiap launch di home: install app (web/PWA saja).
-  // Native (iOS/Android): tidak ada promo toast.
-  // Persistent — hanya tombol close (X) yang menutupnya.
+  // Install promo toast: web/PWA only, once per tab session.
+  // Native (iOS/Android): no promo toast.
+  // Persistent — only the close (X) button dismisses it.
   const promoShown = useRef(false);
+  // Latest t for the once-per-session effect below. The effect intentionally
+  // keeps [] deps so a language switch never re-fires a second toast in the
+  // same session (promoShown + sessionStorage also guard); reading via the ref
+  // means the toast still shows current-language copy if it fires after a
+  // toggle (e.g. via the 4s fallback timer or a late beforeinstallprompt).
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  });
   useEffect(() => {
     if (promoShown.current) return;
     promoShown.current = true;
 
     if (Platform.OS === 'web') {
       if (typeof window === 'undefined') return;
-      // Sudah terinstall → diam.
+      // Already installed → silent.
       if (isAppInstalled()) return;
-
-      const showInstallToast = () => {
-        showToast({
-          type: 'info',
-          title: 'Install aplikasi',
-          description: 'Pasang portfolio ini sebagai aplikasi desktop.',
-          persistent: true,
-          action: {
-            label: 'Install',
-            onPress: () => {
-              deferredInstallPrompt?.prompt().catch(() => {});
-            },
-          },
-        });
+      const SESSION_KEY = 'pwa-install-toast-shown';
+      try {
+        if (window.sessionStorage?.getItem(SESSION_KEY)) return;
+      } catch {
+        // Storage blocked → fall through and show once per mount.
+      }
+      const markSeen = () => {
+        try {
+          window.sessionStorage?.setItem(SESSION_KEY, '1');
+        } catch {
+          // Ignore (private mode).
+        }
       };
 
-      // Event sudah tertangkap sebelum mount → langsung tampil.
+      // Single layout for both paths (native prompt vs manual fallback).
+      // The handler degrades gracefully: with a prompt it installs,
+      // without one it just dismisses. No layout change.
+      const showInstallToast = () => {
+        let toastId: string | null = null;
+        const handleInstall = () => {
+          try {
+            deferredInstallPrompt?.prompt().catch(() => {});
+          } catch {
+            // No prompt available (manual fallback) → just dismiss.
+          }
+          if (toastId) hideToast(toastId);
+        };
+        markSeen();
+        toastId = showToast({
+          type: 'info',
+          title: tRef.current('install.title'),
+          description: tRef.current('install.description'),
+          persistent: true,
+          action: {
+            label: tRef.current('install.action'),
+            onPress: handleInstall,
+          },
+        });
+        return toastId;
+      };
+
+      // Event already captured before mount → show immediately.
       if (deferredInstallPrompt) {
         showInstallToast();
         return;
       }
 
-      // Event belum datang setelah 4 detik → tampilkan toast instruksi manual
-      // agar tidak "tidak terlihat sama sekali".
+      // Event hasn't arrived after 4s → show the same toast as a manual
+      // fallback so it never looks like "nothing happened".
       let fallbackId: string | null = null;
       const timer = setTimeout(() => {
-        fallbackId = showToast({
-          type: 'info',
-          title: 'Install aplikasi',
-          description: 'Buka menu browser lalu pilih Install / Save as app.',
-          persistent: true,
-        });
+        fallbackId = showInstallToast();
       }, 4000);
 
-      const onBeforeInstallLate = () => {
+      const onBeforeInstallLate = (e: Event) => {
+        try {
+          e.preventDefault();
+        } catch {
+          // Ignore.
+        }
+        deferredInstallPrompt = e as unknown as BeforeInstallPromptEvent;
         clearTimeout(timer);
-        if (fallbackId) hideToast(fallbackId);
+        // Fallback already shown with identical layout — its button now
+        // works via the lazy handler above, so no need to re-show.
+        if (fallbackId) return;
         showInstallToast();
       };
       window.addEventListener('beforeinstallprompt', onBeforeInstallLate);
@@ -137,7 +176,7 @@ export default function HomeScreen() {
       };
     }
 
-    // Non-web (native app): tidak ada promo toast.
+    // Non-web (native app): no promo toast.
     return;
   }, []);
 
