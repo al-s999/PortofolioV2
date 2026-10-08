@@ -14,8 +14,10 @@ import { useAboutMe } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useScrollNav } from '@/components/ScrollContext';
 import { MotiView } from 'moti';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useColorScheme } from 'nativewind';
+import * as WebBrowser from 'expo-web-browser';
+import { buildPdfJsViewerUrl, resolvePdfViewerBaseUrl, PDF_PREVIEW_TIMEOUT_MS } from '@/lib/pdf-viewer';
 
 export async function generateMetadata() {
   return generateGlobalMetadata();
@@ -117,8 +119,8 @@ export default function AboutScreen() {
                 <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
                   Skills
                 </Text>
-                <View className={cn('flex gap-6', isWeb ? 'flex-row' : 'flex-col')}>
-                  <Card variant="outlined" className="flex-1 p-6 shadow-sm">
+                <View className={cn('flex gap-6', isWeb ? 'flex-row' : 'flex-col w-full')}>
+                  <Card variant="outlined" className={cn('p-6 shadow-sm', isWeb ? 'flex-1' : 'w-full')} style={{ overflow: 'visible' }}>
                     <View className="flex-row items-center gap-3 mb-6">
                       <View className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                         <Code2 size={24} className="text-primary-600 dark:text-primary-400" />
@@ -135,7 +137,7 @@ export default function AboutScreen() {
                     </View>
                   </Card>
 
-                  <Card variant="outlined" className="flex-1 p-6 shadow-sm">
+                  <Card variant="outlined" className={cn('p-6 shadow-sm', isWeb ? 'flex-1' : 'w-full')} style={{ overflow: 'visible' }}>
                     <View className="flex-row items-center gap-3 mb-6">
                       <View className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <Award size={24} className="text-purple-600 dark:text-purple-400" />
@@ -315,29 +317,100 @@ export default function AboutScreen() {
 }
 
 function MobileWebCertPdfViewer({ url }: { url: string }) {
-  const viewerUrl = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+  // PDF.js viewer (remote, lazy via iframe — 0 byte ke bundle).
+  // Sumber viewer cukup diganti di lib/pdf-viewer.ts untuk migrasi self-host.
+  const viewerUrl = useMemo(() => buildPdfJsViewerUrl(url), [url]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setFailed(false);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setLoading(false);
+      setFailed(true);
+    }, PDF_PREVIEW_TIMEOUT_MS);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [url]);
+
+  const handleLoad = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setLoading(false);
+  };
 
   const openRawPdf = () => {
     if (typeof window !== 'undefined') {
-      window.open(url, '_blank');
+      window.open(url, '_blank', 'noopener');
     } else {
       Linking.openURL(url);
     }
   };
 
+  if (failed) {
+    return (
+      <div style={{ width: '100%' }}>
+        <View className="items-center justify-center px-6 py-10">
+          <MaterialCommunityIcons name="file-alert-outline" size={48} color="#9ca3af" />
+          <Text className="text-gray-700 dark:text-gray-300 font-semibold mt-3 text-center">
+            Preview tidak bisa dimuat
+          </Text>
+          <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1 mb-4 text-center">
+            Coba lagi, atau buka PDF langsung di browser.
+          </Text>
+          <View className="flex-row flex-wrap items-center justify-center gap-2">
+            <Pressable
+              onPress={() => {
+                setFailed(false);
+                setLoading(true);
+                if (timerRef.current) clearTimeout(timerRef.current);
+                timerRef.current = setTimeout(() => {
+                  setLoading(false);
+                  setFailed(true);
+                }, PDF_PREVIEW_TIMEOUT_MS);
+              }}
+              className="px-6 py-3 rounded-full bg-primary-600"
+            >
+              <Text className="text-white font-semibold">Coba lagi</Text>
+            </Pressable>
+            <Pressable onPress={openRawPdf} className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700">
+              <Text className="text-gray-800 dark:text-gray-100 font-semibold">Buka PDF</Text>
+            </Pressable>
+          </View>
+        </View>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%' }}>
-      <Text className="text-gray-500 dark:text-gray-400 text-sm mb-2 text-center">Memuat preview…</Text>
-      <iframe
-        title="Certificate PDF"
-        src={viewerUrl}
-        style={{ width: '100%', height: 'min(62vh, 100%)', minHeight: 320, border: 'none' }}
-      />
+      <div style={{ position: 'relative', width: '100%' }}>
+        {loading && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
+            <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">Memuat preview…</Text>
+          </div>
+        )}
+        <iframe
+          title="Certificate PDF"
+          src={viewerUrl}
+          onLoad={handleLoad}
+          style={{ width: '100%', height: 'min(62vh, 100%)', minHeight: 320, border: 'none' }}
+          allowFullScreen
+        />
+      </div>
       <View className="flex-row flex-wrap items-center justify-center gap-2 mt-3 px-4 pb-2">
         <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">Jika preview kosong, pakai tombol ini.</Text>
         <Pressable onPress={openRawPdf} className="px-6 py-3 rounded-full bg-primary-600">
           <Text className="text-white font-semibold">Buka PDF</Text>
         </Pressable>
+        <a href={url} target="_blank" rel="noopener noreferrer" download style={{ textDecoration: 'none' }}>
+          <View className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700">
+            <Text className="text-gray-800 dark:text-gray-100 font-semibold">Unduh</Text>
+          </View>
+        </a>
       </View>
     </div>
   );
@@ -349,12 +422,15 @@ function NativeCertPdfViewer({ url }: { url: string }) {
   const [failReason, setFailReason] = useState<'offline' | 'server'>('offline');
   const [attempt, setAttempt] = useState(0);
   const { height: winH } = useWindowDimensions();
-  const viewerUrl = `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(url)}`;
+  // In-app via PDF.js (base URL 1-baris config — aman untuk migrasi self-host).
+  const viewerUrl = useMemo(() => buildPdfJsViewerUrl(url, resolvePdfViewerBaseUrl()), [url]);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     NetInfo.fetch().then((state) => {
       if (!cancelled && state.isConnected === false) {
+        if (timerRef.current) clearTimeout(timerRef.current);
         setLoading(false);
         setFailReason('offline');
         setFailed(true);
@@ -364,6 +440,36 @@ function NativeCertPdfViewer({ url }: { url: string }) {
       cancelled = true;
     };
   }, [attempt]);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setLoading(false);
+      setFailReason('server');
+      setFailed(true);
+    }, PDF_PREVIEW_TIMEOUT_MS);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [attempt, url]);
+
+  const clearTimer = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  };
+
+  const openInBrowser = async () => {
+    try {
+      await WebBrowser.openBrowserAsync(url, { showTitle: true });
+    } catch {
+      Linking.openURL(url);
+    }
+  };
+
+  const retry = () => {
+    setFailed(false);
+    setLoading(true);
+    setAttempt((a) => a + 1);
+  };
 
   return (
     <View style={{ width: '100%', aspectRatio: 1.414, maxHeight: winH * 0.62, minHeight: Math.min(320, winH * 0.5) }}>
@@ -378,16 +484,20 @@ function NativeCertPdfViewer({ url }: { url: string }) {
               ? 'Anda offline — hubungkan internet lalu coba lagi.'
               : 'Server tidak bisa memuat dokumen. Coba lagi.'}
           </Text>
-          <Pressable
-            onPress={() => {
-              setFailed(false);
-              setLoading(true);
-              setAttempt((a) => a + 1);
-            }}
-            className="mt-4 px-6 py-3 rounded-full bg-primary-600"
-          >
-            <Text className="text-white font-semibold">Coba lagi</Text>
-          </Pressable>
+          <View className="flex-row flex-wrap items-center justify-center gap-2 mt-4">
+            <Pressable
+              onPress={retry}
+              className="px-6 py-3 rounded-full bg-primary-600"
+            >
+              <Text className="text-white font-semibold">Coba lagi</Text>
+            </Pressable>
+            <Pressable
+              onPress={openInBrowser}
+              className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700"
+            >
+              <Text className="text-gray-800 dark:text-gray-100 font-semibold">Buka di Browser</Text>
+            </Pressable>
+          </View>
         </View>
       ) : (
         <View style={{ flex: 1 }}>
@@ -399,13 +509,18 @@ function NativeCertPdfViewer({ url }: { url: string }) {
             domStorageEnabled
             scalesPageToFit
             startInLoadingState
-            onLoadEnd={() => setLoading(false)}
+            onLoadEnd={() => {
+              clearTimer();
+              setLoading(false);
+            }}
             onError={() => {
+              clearTimer();
               setLoading(false);
               setFailReason('offline');
               setFailed(true);
             }}
             onHttpError={() => {
+              clearTimer();
               setLoading(false);
               setFailReason('server');
               setFailed(true);
@@ -469,7 +584,7 @@ function SkillBadge({ name, isDark, isWeb }: { name: string, isDark: boolean, is
   };
 
   return (
-    <View className={cn('rounded-2xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border items-center justify-center shadow-sm px-1 py-3', isWeb === false ? 'flex-1 basis-[30%] min-w-[88px] max-w-[120px] min-h-[96px] aspect-square' : 'w-24 h-24')}>
+    <View className={cn('rounded-2xl bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border items-center justify-center shadow-sm px-1 py-3', isWeb === false ? 'w-[46%] min-w-[100px] min-h-[112px] shrink-0 grow-0' : 'w-24 h-24')}>
       {getIcon(name, isDark)}
       <Text className="text-gray-700 dark:text-gray-300 font-medium text-xs mt-3 text-center px-1" numberOfLines={2}>{name}</Text>
     </View>
