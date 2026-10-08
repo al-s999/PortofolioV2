@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { cn } from '@/lib/utils/cn';
-import { Home, User, FolderGit2, Mail, Moon, Sun } from '@/components/ui';
+import { Home, User, FolderGit2, Mail, Moon, Sun, LanguageToggle } from '@/components/ui';
 import { useWindowDimensions, Pressable, View, Text } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { useEffect, useState } from 'react';
@@ -101,12 +101,15 @@ export default function TabsLayout() {
     <ScrollProvider>
       <OfflineBanner />
       <InnerTabs />
-      <Pressable 
-        onPress={toggleColorScheme} 
-        className="absolute top-12 right-6 lg:top-8 lg:right-10 p-3.5 rounded-full bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-700 z-50 transition-colors pointer-events-auto"
-      >
-        {colorScheme === 'dark' ? <Moon size={26} color="#e5e7eb" /> : <Sun size={26} color="#eab308" />}
-      </Pressable>
+      <View className="absolute top-12 right-6 lg:top-8 lg:right-10 z-50 flex-row items-center gap-2 pointer-events-auto">
+        <LanguageToggle />
+        <Pressable
+          onPress={toggleColorScheme}
+          className="p-3.5 rounded-full bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-lg border border-gray-200 dark:border-gray-700 transition-colors pointer-events-auto"
+        >
+          {colorScheme === 'dark' ? <Moon size={26} color="#e5e7eb" /> : <Sun size={26} color="#eab308" />}
+        </Pressable>
+      </View>
     </ScrollProvider>
   );
 }

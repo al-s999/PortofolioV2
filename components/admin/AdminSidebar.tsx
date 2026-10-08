@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import { Link, usePathname, useRouter } from 'expo-router';
-import { LayoutDashboard, User, FolderGit2, Mail, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Moon, Sun } from '@/components/ui';
+import { LayoutDashboard, User, FolderGit2, Mail, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Moon, Sun, LanguageToggle } from '@/components/ui';
 import { useColorScheme } from 'nativewind';
 import { cn } from '@/lib/utils/cn';
 import { Avatar } from '@/components/ui/Avatar';
@@ -85,10 +85,13 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
                   </View>
                 </View>
               )}
-              <Pressable onPress={toggleColorScheme} className={cn('flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-800 mb-2', collapsed && 'justify-center')}>
-                {colorScheme === 'dark' ? <Moon size={24} color="#94a3b8" /> : <Sun size={24} color="#eab308" />}
-                {!collapsed && <Text className="font-medium text-gray-700 dark:text-gray-300">Theme</Text>}
-              </Pressable>
+              <View className={cn('flex-row items-center gap-2 mb-2', collapsed && 'flex-col justify-center')}>
+                <Pressable onPress={toggleColorScheme} className={cn('flex-1 flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-800', collapsed && 'justify-center')}>
+                  {colorScheme === 'dark' ? <Moon size={24} color="#94a3b8" /> : <Sun size={24} color="#eab308" />}
+                  {!collapsed && <Text className="font-medium text-gray-700 dark:text-gray-300">Theme</Text>}
+                </Pressable>
+                <LanguageToggle />
+              </View>
               <Pressable onPress={handleSignOut} className={cn('flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-900/30', collapsed && 'justify-center')}>
                 <LogOut size={24} color="#ef4444" />
                 {!collapsed && <Text className="text-red-600 dark:text-red-400 font-medium">Sign Out</Text>}
@@ -159,10 +162,13 @@ export function AdminSidebar({ children }: AdminSidebarProps) {
             </View>
           </View>
 
-          <Pressable onPress={toggleColorScheme} className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-800 mb-2">
-            {colorScheme === 'dark' ? <Moon size={24} color="#94a3b8" /> : <Sun size={24} color="#eab308" />}
-            <Text className="font-medium text-gray-700 dark:text-gray-300">Theme</Text>
-          </Pressable>
+          <View className="flex-row items-center gap-2 mb-2">
+            <Pressable onPress={toggleColorScheme} className="flex-1 flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-800">
+              {colorScheme === 'dark' ? <Moon size={24} color="#94a3b8" /> : <Sun size={24} color="#eab308" />}
+              <Text className="font-medium text-gray-700 dark:text-gray-300">Theme</Text>
+            </Pressable>
+            <LanguageToggle />
+          </View>
 
           <Pressable onPress={handleSignOut} className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/30">
             <LogOut size={24} color="#ef4444" />

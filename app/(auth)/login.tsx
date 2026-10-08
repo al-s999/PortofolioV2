@@ -1,6 +1,6 @@
 import { View, Text, TextInput, Pressable, Keyboard, StyleSheet, useWindowDimensions } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight, Sun, Moon } from '@/components/ui';
+import { Eye, EyeOff, Loader2, Mail, Lock, ArrowRight, Sun, Moon, LanguageToggle } from '@/components/ui';
 import { cn } from '@/lib/utils/cn';
 import { useColorScheme } from 'nativewind';
 import { Button } from '@/components/ui/Button';
@@ -81,13 +81,16 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-dark-bg relative" style={styles.container}>
-      {/* Theme Toggle */}
-      <Pressable 
-        onPress={toggleColorScheme}
-        className="absolute top-12 right-6 p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 z-10"
-      >
-        {colorScheme === 'dark' ? <Sun size={24} className="text-yellow-500" /> : <Moon size={24} className="text-gray-600" />}
-      </Pressable>
+      {/* Theme + Language Toggles */}
+      <View className="absolute top-12 right-6 z-10 flex-row items-center gap-2">
+        <LanguageToggle />
+        <Pressable
+          onPress={toggleColorScheme}
+          className="p-3 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700"
+        >
+          {colorScheme === 'dark' ? <Sun size={24} className="text-yellow-500" /> : <Moon size={24} className="text-gray-600" />}
+        </Pressable>
+      </View>
 
       <View className="flex-1 justify-center items-center p-4" style={[styles.content, { paddingTop: isWeb ? 60 : 20 }]}>
         <Card variant="outlined" className={cn('w-full', isWeb ? 'max-w-md' : '')}>

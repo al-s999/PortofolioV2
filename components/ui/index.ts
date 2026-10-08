@@ -10,6 +10,7 @@ export { Modal } from './Modal';
 export { Select } from './Select';
 export { Toast, ToastProvider, useToast } from './Toast';
 export { LucideIcon } from './LucideIcon';
+export { LanguageToggle } from './LanguageToggle';
 export {
   Home, User, FolderGit2, Mail, ArrowRight, Github, Linkedin, Twitter, Instagram,
   ExternalLink, Moon, Sun, ChevronDown, MapPin, Calendar, Code2, Award, Heart,
