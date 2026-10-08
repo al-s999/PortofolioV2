@@ -11,20 +11,22 @@ import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
 import { useContacts } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from '@/components/ui/Toast';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
-const contactSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters'),
-  message: z.string().min(20, 'Message must be at least 20 characters'),
-});
+const makeContactSchema = (v: { nameMin: string; emailInvalid: string; subjectMin: string; messageMin: string }) =>
+  z.object({
+    name: z.string().min(2, v.nameMin),
+    email: z.string().email(v.emailInvalid),
+    subject: z.string().min(5, v.subjectMin),
+    message: z.string().min(20, v.messageMin),
+  });
 
-type ContactForm = z.infer<typeof contactSchema>;
+type ContactForm = z.infer<ReturnType<typeof makeContactSchema>>;
 
 const contactIcons: Record<string, any> = {
   email: Mail,
@@ -55,8 +57,20 @@ export default function ContactScreen() {
     });
   }
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [copiedContact, setCopiedContact] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const contactSchema = useMemo(
+    () =>
+      makeContactSchema({
+        nameMin: t('contact.validation.nameMin'),
+        emailInvalid: t('contact.validation.emailInvalid'),
+        subjectMin: t('contact.validation.subjectMin'),
+        messageMin: t('contact.validation.messageMin'),
+      }),
+    [t]
+  );
 
   const {
     register,
@@ -77,15 +91,15 @@ export default function ContactScreen() {
       
       showToast({
         type: 'success',
-        title: 'Message sent!',
-        description: 'Thanks for reaching out. I\'ll get back to you soon.',
+        title: t('toast.messageSent'),
+        description: t('toast.messageSentDescription'),
       });
       reset();
     } catch {
       showToast({
         type: 'error',
-        title: 'Failed to send',
-        description: 'Something went wrong. Please try again later.',
+        title: t('toast.sendFailed'),
+        description: t('toast.sendFailedDescription'),
       });
     } finally {
       setSubmitting(false);
@@ -100,8 +114,8 @@ export default function ContactScreen() {
     setTimeout(() => setCopiedContact(null), 2000);
     showToast({
       type: 'success',
-      title: 'Copied!',
-      description: `${value} copied to clipboard`,
+      title: t('toast.copied'),
+      description: `${value} ${t('toast.copiedToClipboard')}`,
     });
   };
 
@@ -151,32 +165,32 @@ export default function ContactScreen() {
             <Card variant="outlined" className={cn(isWeb && 'h-full min-h-[550px]')}>
               <View className={cn('p-8 flex-col shrink-0', isWeb && 'h-full')}>
                 <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                  Send a message
+                  {t('contact.formTitle')}
                 </Text>
               <View className="flex-col shrink-0">
                 <View className="flex-col gap-5 shrink-0">
                   <Input
-                    label="Name"
-                    placeholder="Your name"
+                    label={t('contact.nameLabel')}
+                    placeholder={t('contact.namePlaceholder')}
                     error={errors.name?.message}
                     {...register('name')}
                   />
                   <Input
-                    label="Email"
+                    label={t('contact.emailLabel')}
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder={t('contact.emailPlaceholder')}
                     error={errors.email?.message}
                     {...register('email')}
                   />
                   <Input
-                    label="Subject"
-                    placeholder="What's this about?"
+                    label={t('contact.subjectLabel')}
+                    placeholder={t('contact.subjectPlaceholder')}
                     error={errors.subject?.message}
                     {...register('subject')}
                   />
                   <Textarea
-                    label="Message"
-                    placeholder="Tell me about your project..."
+                    label={t('contact.messageLabel')}
+                    placeholder={t('contact.messagePlaceholder')}
                     error={errors.message?.message}
                     {...register('message')}
                   />
@@ -187,7 +201,7 @@ export default function ContactScreen() {
                       fullWidth
                       loading={submitting}
                     >
-                      {submitting ? 'Sending...' : 'Send Message'}
+                      {submitting ? t('contact.sending') : t('contact.submit')}
                     </Button>
                   </View>
                 </View>
@@ -201,10 +215,10 @@ export default function ContactScreen() {
           {contactsPaused && activeContacts.length === 0 ? (
             <View className="flex-grow min-w-[240px] max-w-full">
               <Card variant="outlined" className="p-6 min-h-[140px]">
-                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Menunggu koneksi…</Text>
-                <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">Anda offline. Nyalakan internet — data dimuat otomatis.</Text>
+                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('offline.waitingTitle')}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">{t('offline.waitingDescription')}</Text>
                 <Button variant="outline" onPress={() => refetchContacts()}>
-                  Coba lagi
+                  {t('common.retry')}
                 </Button>
               </Card>
             </View>
@@ -219,20 +233,20 @@ export default function ContactScreen() {
           ) : contactsError ? (
             <View className="flex-grow min-w-[240px] max-w-full">
               <Card variant="outlined" className="p-6 min-h-[140px]">
-                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Gagal memuat kontak</Text>
+                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('contact.loadFailedTitle')}</Text>
                 <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4" numberOfLines={2}>
-                  {contactsQueryError instanceof Error ? contactsQueryError.message : 'Periksa koneksi lalu coba lagi.'}
+                  {contactsQueryError instanceof Error ? contactsQueryError.message : t('common.fallbackError')}
                 </Text>
                 <Button variant="outline" onPress={() => refetchContacts()}>
-                  Coba lagi
+                  {t('common.retry')}
                 </Button>
               </Card>
             </View>
           ) : activeContacts.length === 0 ? (
             <View className="flex-grow min-w-[240px] max-w-full">
               <Card variant="outlined" className="p-6 min-h-[140px]">
-                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Belum ada kontak</Text>
-                <Text className="text-sm text-gray-500 dark:text-gray-400">Kontak akan muncul di sini setelah ditambahkan.</Text>
+                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('contact.emptyTitle')}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray-400">{t('contact.emptyDescription')}</Text>
               </Card>
             </View>
           ) : (
@@ -256,7 +270,7 @@ export default function ContactScreen() {
       {/* Footer */}
       <View className="px-4 py-8 align-center">
         <Text className="text-sm text-gray-500 dark:text-gray-400 text-center">
-          © {new Date().getFullYear()} Portfolio. Built with Expo & React Native.
+          © {new Date().getFullYear()} Portfolio. {t('contact.footer')}
         </Text>
       </View>
       </View>

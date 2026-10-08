@@ -8,6 +8,7 @@ import { ArrowLeft, Github, ExternalLink } from '@/components/ui';
 import { useScrollNav } from '@/components/ScrollContext';
 import { MotiView } from 'moti';
 import { cn } from '@/lib/utils/cn';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ProjectDetailScreen() {
   const { width } = useWindowDimensions();
@@ -16,16 +17,17 @@ export default function ProjectDetailScreen() {
   const router = useRouter();
   const { data: project, isLoading, isPaused, error, refetch } = useProject(id as string);
   const { onScroll } = useScrollNav();
+  const { t } = useLanguage();
 
   if (isPaused && !project) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-dark-bg px-6">
-        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-2">Menunggu koneksi…</Text>
+        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-2">{t('offline.waitingTitle')}</Text>
         <Text className="text-gray-500 dark:text-gray-400 text-sm mb-4 text-center">
-          Anda offline. Nyalakan internet — data dimuat otomatis.
+          {t('offline.waitingDescription')}
         </Text>
         <Button variant="outline" onPress={() => refetch()}>
-          Coba lagi
+          {t('common.retry')}
         </Button>
       </View>
     );
@@ -45,16 +47,16 @@ export default function ProjectDetailScreen() {
   if (error) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-dark-bg px-6">
-        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-2">Gagal memuat project</Text>
+        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-2">{t('projects.detail.loadFailedTitle')}</Text>
         <Text className="text-gray-500 dark:text-gray-400 text-sm mb-4 text-center" numberOfLines={2}>
-          {error instanceof Error ? error.message : 'Periksa koneksi lalu coba lagi.'}
+          {error instanceof Error ? error.message : t('common.fallbackError')}
         </Text>
         <View className="flex-row gap-3">
           <Button variant="outline" onPress={() => refetch()}>
-            Coba lagi
+            {t('common.retry')}
           </Button>
           <Button variant="outline" onPress={() => router.back()} leftIcon={<ArrowLeft size={18} />}>
-            Go Back
+            {t('projects.detail.goBack')}
           </Button>
         </View>
       </View>
@@ -64,9 +66,9 @@ export default function ProjectDetailScreen() {
   if (!project) {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-dark-bg">
-        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-4">Project not found</Text>
+        <Text className="text-gray-900 dark:text-gray-100 font-bold text-xl mb-4">{t('projects.detail.notFound')}</Text>
         <Button variant="outline" onPress={() => router.back()} leftIcon={<ArrowLeft size={18} />}>
-          Go Back
+          {t('projects.detail.goBack')}
         </Button>
       </View>
     );
@@ -87,7 +89,7 @@ export default function ProjectDetailScreen() {
           className="flex-row items-center gap-3 hover:opacity-70 transition-opacity"
         >
           <ArrowLeft size={24} className="text-gray-500 dark:text-gray-400" />
-          <Text className="text-gray-600 dark:text-gray-300 font-semibold text-lg">Back</Text>
+          <Text className="text-gray-600 dark:text-gray-300 font-semibold text-lg">{t('projects.detail.back')}</Text>
         </Pressable>
       </View>
 
@@ -139,7 +141,7 @@ export default function ProjectDetailScreen() {
           transition={{ type: 'timing', delay: 400 }}
           className="mb-20"
         >
-          <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-6">About the Project</Text>
+          <Text className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('projects.detail.aboutProject')}</Text>
           <Text className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed mb-12">
             {project.description}
           </Text>
@@ -185,7 +187,7 @@ export default function ProjectDetailScreen() {
                 onPress={() => Linking.openURL(project.github_url!)}
                 className="rounded-full flex-1 md:flex-none justify-center"
               >
-                Source Code
+                {t('projects.detail.sourceCode')}
               </Button>
             )}
             {project.demo_url && (
@@ -195,7 +197,7 @@ export default function ProjectDetailScreen() {
                 onPress={() => Linking.openURL(project.demo_url!)}
                 className="rounded-full flex-1 md:flex-none justify-center"
               >
-                See Project
+                {t('projects.detail.seeProject')}
               </Button>
             )}
           </View>

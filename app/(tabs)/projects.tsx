@@ -12,6 +12,7 @@ import { useProjects } from '@/lib/queries';
 import { generateGlobalMetadata } from '@/lib/seo-metadata';
 import { useEffect, useState } from 'react';
 import { useScrollNav } from '@/components/ScrollContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export async function generateMetadata() {
   return generateGlobalMetadata();
@@ -26,6 +27,7 @@ export default function ProjectsScreen() {
   const [selectedTech, setSelectedTech] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
   const { onScroll } = useScrollNav();
+  const { t } = useLanguage();
 
   const allTechStack = Array.from(
     new Set(projects?.flatMap((p) => p.tech_stack ?? []) ?? [])
@@ -65,10 +67,10 @@ export default function ProjectsScreen() {
           <View className="flex-row items-center justify-between mb-8">
             <View>
               <Text className={cn('font-bold text-gray-900 dark:text-white', isWeb ? 'text-4xl' : 'text-3xl')}>
-                Projects
+                {t('projects.title')}
               </Text>
               <Text className="text-gray-600 dark:text-gray-400 mt-2 text-lg">
-                {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''} found
+                {(filteredProjects.length === 1 ? t('projects.resultOne') : t('projects.resultOther')).replace('{count}', String(filteredProjects.length))}
               </Text>
             </View>
           </View>
@@ -76,7 +78,7 @@ export default function ProjectsScreen() {
           {/* Search & Filters */}
           <View className={cn('gap-4 items-stretch justify-between z-50', isWeb ? 'flex-row items-center' : 'flex-col')}>
             <Input
-              placeholder="Search projects..."
+              placeholder={t('projects.searchPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               leftIcon={<Search size={20} stroke="gray" />}
@@ -86,10 +88,10 @@ export default function ProjectsScreen() {
               value={selectedTech}
               onChange={setSelectedTech}
               options={[
-                { value: 'all', label: 'All' },
+                { value: 'all', label: t('projects.filterAll') },
                 ...allTechStack.map((tech) => ({ value: tech, label: tech })),
               ]}
-              placeholder="Filter by technology"
+              placeholder={t('projects.filterPlaceholder')}
               className={cn(isWeb ? 'w-64' : 'w-full')}
               leftIcon={<Filter size={20} stroke="gray" />}
             />
@@ -101,13 +103,13 @@ export default function ProjectsScreen() {
           <View className="px-4 py-16 align-center">
             <Card variant="outlined" className="p-12 align-center max-w-md">
               <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Menunggu koneksi…
+                {t('offline.waitingTitle')}
               </Text>
               <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Anda offline. Nyalakan internet — data dimuat otomatis.
+                {t('offline.waitingDescription')}
               </Text>
               <Button variant="outline" onPress={() => refetch()}>
-                Coba lagi
+                {t('common.retry')}
               </Button>
             </Card>
           </View>
@@ -121,13 +123,13 @@ export default function ProjectsScreen() {
           <View className="px-4 py-16 align-center">
             <Card variant="outlined" className="p-12 align-center max-w-md">
               <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                Gagal memuat projects
+                {t('projects.loadFailedTitle')}
               </Text>
               <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4" numberOfLines={2}>
-                {error instanceof Error ? error.message : 'Periksa koneksi lalu coba lagi.'}
+                {error instanceof Error ? error.message : t('common.fallbackError')}
               </Text>
               <Button variant="outline" onPress={() => refetch()}>
-                Coba lagi
+                {t('common.retry')}
               </Button>
             </Card>
           </View>
@@ -135,11 +137,11 @@ export default function ProjectsScreen() {
           <View className="px-4 py-16 align-center">
             <Card variant="outlined" className="p-12 align-center max-w-md">
               <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                No projects found
+                {t('projects.noProjects')}
               </Text>
               {(searchQuery || selectedTech !== 'all') && (
                 <Button variant="outline" onPress={() => { setSearchQuery(''); setSelectedTech('all'); }}>
-                  Clear Filters
+                  {t('projects.clearFilters')}
                 </Button>
               )}
             </Card>
@@ -159,6 +161,7 @@ export default function ProjectsScreen() {
 }
 
 function ProjectCard({ project, onPress, isWeb }: { project: any; onPress: () => void; isWeb?: boolean }) {
+  const { t } = useLanguage();
   return (
     <Pressable onPress={onPress} className={cn('group', !isWeb && 'w-full shrink-0 self-start')}>
       <Card variant="outlined" className={cn(isWeb && 'h-full group-hover:shadow-xl transition-all duration-300')}>
@@ -178,7 +181,7 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress: () =>
             </Text>
           </View>
           <Text className="text-gray-600 dark:text-gray-400 text-sm mb-4 shrink-0" numberOfLines={3}>
-            {project.short_description ?? project.description?.slice(0, 120) ?? 'No description available'}
+            {project.short_description ?? project.description?.slice(0, 120) ?? t('projects.noDescription')}
           </Text>
           <View className="flex-row flex-wrap gap-1.5 mb-4">
             {project.tech_stack?.slice(0, 5).map((tech: string) => (
@@ -203,7 +206,7 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress: () =>
             </View>
             <View className="flex-row items-center gap-1">
               <ChevronDown size={14} stroke="#9ca3af" />
-              <Text className="text-sm text-gray-500 dark:text-gray-400">View Details</Text>
+              <Text className="text-sm text-gray-500 dark:text-gray-400">{t('projects.viewDetails')}</Text>
             </View>
           </View>
         </View>

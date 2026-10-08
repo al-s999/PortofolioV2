@@ -18,6 +18,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useColorScheme } from 'nativewind';
 import * as WebBrowser from 'expo-web-browser';
 import { buildPdfJsViewerUrl, resolvePdfViewerBaseUrl, PDF_PREVIEW_TIMEOUT_MS } from '@/lib/pdf-viewer';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export async function generateMetadata() {
   return generateGlobalMetadata();
@@ -30,6 +31,7 @@ export default function AboutScreen() {
   const { onScroll } = useScrollNav();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { t } = useLanguage();
   const [selectedCert, setSelectedCert] = useState<any>(null);
 
   const skillsByCategory = aboutMe?.skills?.reduce((acc, skill) => {
@@ -64,12 +66,12 @@ export default function AboutScreen() {
           {aboutPaused && !aboutMe ? (
             <View className="px-4 mb-12 mt-4">
               <Card variant="outlined" className="p-6">
-                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Menunggu koneksi…</Text>
+                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('offline.waitingTitle')}</Text>
                 <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                  Anda offline. Nyalakan internet — data dimuat otomatis.
+                  {t('offline.waitingDescription')}
                 </Text>
                 <Button variant="outline" onPress={() => refetchAbout()}>
-                  Coba lagi
+                  {t('common.retry')}
                 </Button>
               </Card>
             </View>
@@ -81,12 +83,12 @@ export default function AboutScreen() {
           ) : aboutError && !aboutMe ? (
             <View className="px-4 mb-12 mt-4">
               <Card variant="outlined" className="p-6">
-                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Gagal memuat tentang saya</Text>
+                <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('about.loadFailedTitle')}</Text>
                 <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4" numberOfLines={2}>
-                  {aboutQueryError instanceof Error ? aboutQueryError.message : 'Periksa koneksi lalu coba lagi.'}
+                  {aboutQueryError instanceof Error ? aboutQueryError.message : t('common.fallbackError')}
                 </Text>
                 <Button variant="outline" onPress={() => refetchAbout()}>
-                  Coba lagi
+                  {t('common.retry')}
                 </Button>
               </Card>
             </View>
@@ -99,7 +101,7 @@ export default function AboutScreen() {
                 from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', delay: 100, duration: 600 }}
               >
                 <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                  About Me
+                  {t('about.title')}
                 </Text>
                 <Card variant="outlined" className="p-6 shadow-sm">
                   <Text className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line text-lg">
@@ -117,7 +119,7 @@ export default function AboutScreen() {
                 from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', delay: 200, duration: 600 }}
               >
                 <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                  Skills
+                  {t('about.skills')}
                 </Text>
                 <View className={cn('flex gap-6', isWeb ? 'flex-row' : 'flex-col w-full')}>
                   <Card variant="outlined" className={cn('p-6 shadow-sm', isWeb ? 'flex-1' : 'w-full')} style={{ overflow: 'visible' }}>
@@ -125,14 +127,14 @@ export default function AboutScreen() {
                       <View className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                         <Code2 size={24} className="text-primary-600 dark:text-primary-400" />
                       </View>
-                      <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Web Developer</Text>
+                      <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('about.webDeveloper')}</Text>
                     </View>
                     <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                       {aboutMe.skills.filter(s => s.category !== 'data').map((skill, i) => (
                         <SkillBadge key={i} name={skill.name} isDark={isDark} isWeb={isWeb} />
                       ))}
                       {aboutMe.skills.filter(s => s.category !== 'data').length === 0 && (
-                        <Text className="text-gray-500 dark:text-gray-400">No web developer skills added yet.</Text>
+                        <Text className="text-gray-500 dark:text-gray-400">{t('about.noWebSkills')}</Text>
                       )}
                     </View>
                   </Card>
@@ -142,14 +144,14 @@ export default function AboutScreen() {
                       <View className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                         <Award size={24} className="text-purple-600 dark:text-purple-400" />
                       </View>
-                      <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Data Scientist</Text>
+                      <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('about.dataScientist')}</Text>
                     </View>
                     <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                       {aboutMe.skills.filter(s => s.category === 'data').map((skill, i) => (
                         <SkillBadge key={i} name={skill.name} isDark={isDark} isWeb={isWeb} />
                       ))}
                       {aboutMe.skills.filter(s => s.category === 'data').length === 0 && (
-                        <Text className="text-gray-500 dark:text-gray-400">No data scientist skills added yet.</Text>
+                        <Text className="text-gray-500 dark:text-gray-400">{t('about.noDataSkills')}</Text>
                       )}
                     </View>
                   </Card>
@@ -165,14 +167,14 @@ export default function AboutScreen() {
               from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', delay: 300, duration: 600 }}
             >
               <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Experience
+                {t('about.experience')}
               </Text>
               <Card variant="outlined" className="p-6 shadow-sm">
                 <View className="space-y-6">
                   {aboutMe?.experience?.length ? aboutMe.experience.map((exp, index) => (
                     <ExperienceItem key={index} experience={exp} isLast={index === aboutMe.experience!.length - 1} />
                   )) : (
-                    <Text className="text-gray-500 dark:text-gray-400">No experience added yet.</Text>
+                    <Text className="text-gray-500 dark:text-gray-400">{t('about.noExperience')}</Text>
                   )}
                 </View>
               </Card>
@@ -185,14 +187,14 @@ export default function AboutScreen() {
               from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', delay: 400, duration: 600 }}
             >
               <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Education
+                {t('about.education')}
               </Text>
               <Card variant="outlined" className="p-6 shadow-sm">
                 <View className="space-y-6">
                   {aboutMe?.education?.length ? aboutMe.education.map((edu, index) => (
                     <EducationItem key={index} education={edu} isLast={index === aboutMe.education!.length - 1} />
                   )) : (
-                    <Text className="text-gray-500 dark:text-gray-400">No education added yet.</Text>
+                    <Text className="text-gray-500 dark:text-gray-400">{t('about.noEducation')}</Text>
                   )}
                 </View>
               </Card>
@@ -206,7 +208,7 @@ export default function AboutScreen() {
                 from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', delay: 500, duration: 600 }}
               >
                 <Text className={cn('font-bold mb-8 text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                  Certificates & Licenses
+                  {t('about.certificates')}
                 </Text>
                 <View className={cn('w-full', isWeb ? 'grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[240px]' : 'flex flex-col gap-4')}>
                   {aboutMe.certificates?.map((cert, index) => {
@@ -251,7 +253,7 @@ export default function AboutScreen() {
                           ) : (
                             <View className="flex-1 bg-red-50 dark:bg-red-900/20 items-center justify-center px-4">
                               <MaterialCommunityIcons name="file-pdf-box" size={48} color="#ef4444" />
-                              <Text className="text-red-500 font-bold mt-2 text-center">PDF • Tap untuk preview</Text>
+                              <Text className="text-red-500 font-bold mt-2 text-center">{t('about.pdfTapPreview')}</Text>
                             </View>
                           )
                         ) : (
@@ -317,6 +319,7 @@ export default function AboutScreen() {
 }
 
 function MobileWebCertPdfViewer({ url }: { url: string }) {
+  const { t } = useLanguage();
   // PDF.js viewer (remote, lazy via iframe — 0 byte ke bundle).
   // Sumber viewer cukup diganti di lib/pdf-viewer.ts untuk migrasi self-host.
   const viewerUrl = useMemo(() => buildPdfJsViewerUrl(url), [url]);
@@ -356,10 +359,10 @@ function MobileWebCertPdfViewer({ url }: { url: string }) {
         <View className="items-center justify-center px-6 py-10">
           <MaterialCommunityIcons name="file-alert-outline" size={48} color="#9ca3af" />
           <Text className="text-gray-700 dark:text-gray-300 font-semibold mt-3 text-center">
-            Preview tidak bisa dimuat
+            {t('about.previewFailedTitle')}
           </Text>
           <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1 mb-4 text-center">
-            Coba lagi, atau buka PDF langsung di browser.
+            {t('about.previewFailedHint')}
           </Text>
           <View className="flex-row flex-wrap items-center justify-center gap-2">
             <Pressable
@@ -374,10 +377,10 @@ function MobileWebCertPdfViewer({ url }: { url: string }) {
               }}
               className="px-6 py-3 rounded-full bg-primary-600"
             >
-              <Text className="text-white font-semibold">Coba lagi</Text>
+              <Text className="text-white font-semibold">{t('common.retry')}</Text>
             </Pressable>
             <Pressable onPress={openRawPdf} className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700">
-              <Text className="text-gray-800 dark:text-gray-100 font-semibold">Buka PDF</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-semibold">{t('about.openPdf')}</Text>
             </Pressable>
           </View>
         </View>
@@ -390,7 +393,7 @@ function MobileWebCertPdfViewer({ url }: { url: string }) {
       <div style={{ position: 'relative', width: '100%' }}>
         {loading && (
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'transparent' }}>
-            <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">Memuat preview…</Text>
+            <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">{t('about.previewLoading')}</Text>
           </div>
         )}
         <iframe
@@ -402,13 +405,13 @@ function MobileWebCertPdfViewer({ url }: { url: string }) {
         />
       </div>
       <View className="flex-row flex-wrap items-center justify-center gap-2 mt-3 px-4 pb-2">
-        <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">Jika preview kosong, pakai tombol ini.</Text>
+        <Text className="text-gray-500 dark:text-gray-400 text-sm text-center">{t('about.previewEmptyHint')}</Text>
         <Pressable onPress={openRawPdf} className="px-6 py-3 rounded-full bg-primary-600">
-          <Text className="text-white font-semibold">Buka PDF</Text>
+          <Text className="text-white font-semibold">{t('about.openPdf')}</Text>
         </Pressable>
         <a href={url} target="_blank" rel="noopener noreferrer" download style={{ textDecoration: 'none' }}>
           <View className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700">
-            <Text className="text-gray-800 dark:text-gray-100 font-semibold">Unduh</Text>
+            <Text className="text-gray-800 dark:text-gray-100 font-semibold">{t('about.download')}</Text>
           </View>
         </a>
       </View>
@@ -417,6 +420,7 @@ function MobileWebCertPdfViewer({ url }: { url: string }) {
 }
 
 function NativeCertPdfViewer({ url }: { url: string }) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [failReason, setFailReason] = useState<'offline' | 'server'>('offline');
@@ -477,25 +481,25 @@ function NativeCertPdfViewer({ url }: { url: string }) {
         <View className="flex-1 items-center justify-center px-6 bg-gray-100 dark:bg-gray-900">
           <MaterialCommunityIcons name="file-alert-outline" size={48} color="#9ca3af" />
           <Text className="text-gray-700 dark:text-gray-300 font-semibold mt-3 text-center">
-            Preview tidak bisa dimuat
+            {t('about.previewFailedTitle')}
           </Text>
           <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1 text-center">
             {failReason === 'offline'
-              ? 'Anda offline — hubungkan internet lalu coba lagi.'
-              : 'Server tidak bisa memuat dokumen. Coba lagi.'}
+              ? t('about.previewOffline')
+              : t('about.previewServerError')}
           </Text>
           <View className="flex-row flex-wrap items-center justify-center gap-2 mt-4">
             <Pressable
               onPress={retry}
               className="px-6 py-3 rounded-full bg-primary-600"
             >
-              <Text className="text-white font-semibold">Coba lagi</Text>
+              <Text className="text-white font-semibold">{t('common.retry')}</Text>
             </Pressable>
             <Pressable
               onPress={openInBrowser}
               className="px-6 py-3 rounded-full bg-gray-200 dark:bg-gray-700"
             >
-              <Text className="text-gray-800 dark:text-gray-100 font-semibold">Buka di Browser</Text>
+              <Text className="text-gray-800 dark:text-gray-100 font-semibold">{t('about.openInBrowser')}</Text>
             </Pressable>
           </View>
         </View>
@@ -533,7 +537,7 @@ function NativeCertPdfViewer({ url }: { url: string }) {
               className="bg-gray-100 dark:bg-gray-900"
             >
               <ActivityIndicator size="large" />
-              <Text className="text-gray-500 dark:text-gray-400 text-sm mt-3">Memuat preview...</Text>
+              <Text className="text-gray-500 dark:text-gray-400 text-sm mt-3">{t('about.previewLoadingEllipsis')}</Text>
             </View>
           )}
         </View>
@@ -592,6 +596,7 @@ function SkillBadge({ name, isDark, isWeb }: { name: string, isDark: boolean, is
 }
 
 function ExperienceItem({ experience, isLast }: { experience: any; isLast: boolean }) {
+  const { t } = useLanguage();
   const { role, company, period, description, technologies } = experience;
 
   return (
@@ -605,7 +610,7 @@ function ExperienceItem({ experience, isLast }: { experience: any; isLast: boole
       <View className="flex-1">
         <View className="flex-row flex-wrap items-baseline gap-2 mb-2">
           <Text className="font-semibold text-gray-900 dark:text-gray-100">{experience.role}</Text>
-          <Text className="text-gray-500 dark:text-gray-400">at</Text>
+          <Text className="text-gray-500 dark:text-gray-400">{t('about.at')}</Text>
           <Text className="font-medium text-primary-600 dark:text-primary-400">{experience.company}</Text>
         </View>
         <Text className="text-gray-500 dark:text-gray-400 text-sm mb-3">{experience.year}</Text>

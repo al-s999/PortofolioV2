@@ -196,12 +196,12 @@ export default function HomeScreen() {
         {(aboutPaused || projectsPaused) && !aboutMe && !projects?.length ? (
           <View className={cn('pb-4', isWeb ? 'pt-36 lg:pt-40' : 'pt-24')}>
             <Card variant="outlined" className="p-6">
-              <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Menunggu koneksi…</Text>
+              <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('offline.waitingTitle')}</Text>
               <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                Anda offline. Nyalakan internet — data dimuat otomatis.
+                {t('offline.waitingDescription')}
               </Text>
               <Button variant="outline" onPress={() => { refetchAbout(); refetchProjects(); }}>
-                Coba lagi
+                {t('common.retry')}
               </Button>
             </Card>
           </View>
@@ -215,14 +215,14 @@ export default function HomeScreen() {
         ) : (aboutError || projectsError) && !aboutMe && !projects?.length ? (
           <View className={cn('pb-4', isWeb ? 'pt-36 lg:pt-40' : 'pt-24')}>
             <Card variant="outlined" className="p-6">
-              <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">Gagal memuat beranda</Text>
+              <Text className="font-bold text-gray-900 dark:text-gray-100 mb-1">{t('home.loadFailedTitle')}</Text>
               <Text className="text-sm text-gray-500 dark:text-gray-400 mb-4" numberOfLines={2}>
                 {(aboutQueryError ?? projectsQueryError) instanceof Error
                   ? ((aboutQueryError ?? projectsQueryError) as Error).message
-                  : 'Periksa koneksi lalu coba lagi.'}
+                  : t('common.fallbackError')}
               </Text>
               <Button variant="outline" onPress={() => { refetchAbout(); refetchProjects(); }}>
-                Coba lagi
+                {t('common.retry')}
               </Button>
             </Card>
           </View>
@@ -238,7 +238,7 @@ export default function HomeScreen() {
             <View className="mb-2" style={[styles.heroContent, { flexDirection: isWeb ? 'row' : 'column', alignItems: isWeb ? 'flex-start' : 'center' }]}>
               <View className={cn('mb-8', isWeb ? 'max-w-2xl' : '')}>
                 <Text className={cn('font-bold leading-tight mb-4 text-gray-900 dark:text-gray-100', isWeb ? 'text-5xl lg:text-6xl' : 'text-4xl')}>
-                  Hi, I&apos;m{' '}
+                  {t('home.greeting')}{' '}
                   <Text className="text-primary-600 dark:text-primary-400">{aboutMe?.nickname || 'Ahmad Rosyid'}</Text>
                 </Text>
                 <Text className={cn('text-gray-600 dark:text-gray-300 mb-8 leading-relaxed font-medium', isWeb ? 'text-xl' : 'text-lg')}>
@@ -249,7 +249,7 @@ export default function HomeScreen() {
                 </Text>
                 <View className="flex-row flex-wrap gap-4">
                   <Button size="lg" className="rounded-full shadow-lg shadow-primary-500/30" rightIcon={<ArrowRight size={18} />} onPress={() => router.push('/projects')}>
-                    View Projects
+                    {t('home.viewProjects')}
                   </Button>
                   {aboutMe?.cv_url ? (
                     <Button variant="outline" size="lg" className="rounded-full" onPress={async () => {
@@ -261,20 +261,20 @@ export default function HomeScreen() {
                         offline = false;
                       }
                       if (offline) {
-                        showToast({ type: 'warning', title: 'Anda offline', description: 'CV butuh koneksi internet.' });
+                        showToast({ type: 'warning', title: t('toast.offlineTitle'), description: t('toast.offlineCvDescription') });
                         return;
                       }
                       try {
                         await WebBrowser.openBrowserAsync(aboutMe.cv_url!, { toolbarColor: '#0ea5e9', showTitle: true });
                       } catch {
-                        showToast({ type: 'error', title: 'Gagal membuka CV', description: 'Coba lagi.' });
+                        showToast({ type: 'error', title: t('toast.cvOpenFailed'), description: t('toast.cvOpenFailedDescription') });
                       }
                     }} leftIcon={<MaterialCommunityIcons name="download" size={18} color={colorScheme === 'dark' ? '#d1d5db' : '#4b5563'} />}>
-                      Install CV
+                      {t('home.downloadCv')}
                     </Button>
                   ) : (
                     <Button variant="outline" size="lg" className="rounded-full opacity-50" onPress={() => {}} leftIcon={<MaterialCommunityIcons name="download" size={18} color={colorScheme === 'dark' ? '#d1d5db' : '#4b5563'} />}>
-                      Install CV
+                      {t('home.downloadCv')}
                     </Button>
                   )}
                 </View>
@@ -307,17 +307,17 @@ export default function HomeScreen() {
                     <View className="flex-row justify-around py-6 px-4">
                       <View className="items-center">
                         <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">{featuredProjects.length}</Text>
-                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">Projects</Text>
+                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">{t('home.stats.projects')}</Text>
                       </View>
                       <Separator orientation="vertical" className="h-10 bg-gray-100 dark:bg-gray-800" />
                       <View className="items-center">
                         <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">{aboutMe?.skills?.length ?? 0}</Text>
-                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">Skills</Text>
+                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">{t('home.stats.skills')}</Text>
                       </View>
                       <Separator orientation="vertical" className="h-10 bg-gray-100 dark:bg-gray-800" />
                       <View className="items-center">
                         <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">{aboutMe?.years_of_experience || "3+"}</Text>
-                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">Years Exp</Text>
+                        <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-1">{t('home.stats.yearsExp')}</Text>
                       </View>
                     </View>
                   </Card>
@@ -346,7 +346,7 @@ export default function HomeScreen() {
                   transition={{ type: 'timing', delay: 400, duration: 600 }}
                 >
                   <Text className={cn('text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-6', !isWeb && 'text-center')}>
-                    Featured Skills
+                    {t('home.featuredSkills')}
                   </Text>
                   <View className={cn('flex-row flex-wrap gap-4', !isWeb && 'justify-center')}>
                     {aboutMe.skills.filter(s => s.show_on_home).map((skill) => (
@@ -372,7 +372,7 @@ export default function HomeScreen() {
               transition={{ type: 'timing', delay: 400, duration: 600 }}
             >
               <Text className={cn('font-bold text-gray-900 dark:text-white mb-8', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Education
+                {t('home.education')}
               </Text>
               <View className="space-y-6">
                 {aboutMe.education.map((edu, index) => (
@@ -403,11 +403,11 @@ export default function HomeScreen() {
               <View className="flex-row items-end justify-between mb-8">
                 <View>
                   <Text className={cn('font-bold text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                    Projects
+                    {t('home.projects')}
                   </Text>
                 </View>
                 <Button variant="ghost" rightIcon={<ArrowRight size={16} />} onPress={() => router.push('/projects')} className="hidden sm:flex">
-                  View All
+                  {t('home.viewAll')}
                 </Button>
               </View>
               <View className={cn('gap-6', isWeb ? 'flex-row' : 'flex-col')}>
@@ -418,7 +418,7 @@ export default function HomeScreen() {
                 ))}
               </View>
               <Button variant="outline" className="mt-6 sm:hidden rounded-full" onPress={() => router.push('/projects')}>
-                View All Projects
+                {t('home.viewAllProjects')}
               </Button>
             </MotiView>
           </View>
@@ -427,7 +427,7 @@ export default function HomeScreen() {
         {/* Footer / Contact Details */}
         <View className="py-8 px-4 items-center border-t border-gray-200 dark:border-dark-border mt-6">
           <Text className={cn('font-bold text-gray-900 dark:text-white mb-6', isWeb ? 'text-3xl' : 'text-2xl')}>
-            Let&apos;s Connect
+            {t('home.footer.title')}
           </Text>
           <View className="flex-row flex-wrap justify-center gap-4 mb-6 w-full max-w-3xl">
             <Pressable
@@ -435,7 +435,7 @@ export default function HomeScreen() {
               className="flex-row items-center gap-2 px-6 py-3 rounded-full border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
             >
               <FontAwesome5 name="envelope" size={18} color="#ef4444" />
-              <Text className="font-semibold text-red-600 dark:text-red-400">Send Email</Text>
+              <Text className="font-semibold text-red-600 dark:text-red-400">{t('home.footer.sendEmail')}</Text>
             </Pressable>
 
             <Pressable
@@ -443,7 +443,7 @@ export default function HomeScreen() {
               className="flex-row items-center gap-2 px-6 py-3 rounded-full border border-green-200 dark:border-green-900/50 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors"
             >
               <FontAwesome5 name="whatsapp" size={18} color="#22c55e" />
-              <Text className="font-semibold text-green-600 dark:text-green-400">Chat WhatsApp</Text>
+              <Text className="font-semibold text-green-600 dark:text-green-400">{t('home.footer.chatWhatsapp')}</Text>
             </Pressable>
 
             <Pressable
@@ -451,11 +451,11 @@ export default function HomeScreen() {
               className="flex-row items-center gap-2 px-6 py-3 rounded-full border border-pink-200 dark:border-pink-900/50 bg-pink-50 dark:bg-pink-900/20 hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors"
             >
               <FontAwesome5 name="instagram" size={18} color="#ec4899" />
-              <Text className="font-semibold text-pink-600 dark:text-pink-400">Chat Instagram</Text>
+              <Text className="font-semibold text-pink-600 dark:text-pink-400">{t('home.footer.chatInstagram')}</Text>
             </Pressable>
           </View>
           <Text className="text-sm font-medium text-gray-400 dark:text-gray-500 text-center">
-            © {new Date().getFullYear()} Ahmad Rosyid Alfualdi. Built with Expo & React Native.
+            © {new Date().getFullYear()} Ahmad Rosyid Alfualdi. {t('home.footer.copyright')}
           </Text>
         </View>
       </View>
@@ -464,6 +464,7 @@ export default function HomeScreen() {
 }
 
 function ProjectCard({ project, onPress, isWeb }: { project: any; onPress?: () => void; isWeb?: boolean }) {
+  const { t } = useLanguage();
   return (
     <Pressable
       onPress={onPress}
@@ -486,7 +487,7 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress?: () =
             </Text>
           </View>
           <Text className="text-gray-600 dark:text-gray-400 text-sm mb-4 shrink-0" numberOfLines={2}>
-            {project.short_description ?? project.description?.slice(0, 100) ?? 'No description'}
+            {project.short_description ?? project.description?.slice(0, 100) ?? t('common.noDescription')}
           </Text>
           <View className="flex-row flex-wrap gap-1.5 mb-4">
             {project.tech_stack?.slice(0, 4).map((tech: string) => (
@@ -497,7 +498,7 @@ function ProjectCard({ project, onPress, isWeb }: { project: any; onPress?: () =
             )}
           </View>
           <View className="flex-row items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Text className="text-sm text-gray-500 dark:text-gray-400">View Details</Text>
+            <Text className="text-sm text-gray-500 dark:text-gray-400">{t('common.viewDetails')}</Text>
             <ArrowRight size={16} color="gray" className="group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" />
           </View>
         </View>
