@@ -1,24 +1,50 @@
-import type { AboutMe } from '@/types';
+import type { AboutMe, I18nMap } from '@/types';
+
+export type SeoLang = 'en' | 'id';
+
+export interface SeoAlternate {
+  hreflang: string;
+  href: string;
+}
 
 export interface SeoTags {
+  lang: SeoLang;
   title: string;
   description: string;
   keywords: string;
   canonical: string;
   ogImage: string;
   jsonLd: string;
+  /** hreflang alternates: EN default + ID variant + x-default (consumed by sync-seo.mjs). */
+  alternates: SeoAlternate[];
+}
+
+/** Pick a translated scalar from the `i18n` JSONB mirror, EN fallback when missing. Names/URLs are never translated (Task 8 allowlist). */
+function localizedField(
+  i18n: I18nMap | undefined,
+  lang: SeoLang,
+  field: string
+): string | undefined {
+  if (lang === 'en') return undefined;
+  const value = i18n?.[lang]?.[field];
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
 }
 
 export function buildSeoFromAboutMe(
   aboutMe: AboutMe | null | undefined,
-  siteUrl: string
+  siteUrl: string,
+  lang: SeoLang = 'en'
 ): SeoTags {
   const name = aboutMe?.nickname ?? aboutMe?.full_name ?? 'Ahmad Rosyid';
-  const profession = aboutMe?.profession ?? 'Web Developer & Data Scientist';
+  const profession =
+    localizedField(aboutMe?.i18n, lang, 'profession') ??
+    aboutMe?.profession ??
+    'Web Developer & Data Scientist';
 
   const title = `${name} — ${profession}`;
 
-  const rawContent = aboutMe?.content ?? '';
+  const rawContent =
+    localizedField(aboutMe?.i18n, lang, 'content') ?? aboutMe?.content ?? '';
   const cleanedContent = rawContent.trim().replace(/\s+/g, ' ');
   const description = cleanedContent
     ? cleanedContent.slice(0, 155)
@@ -39,14 +65,23 @@ export function buildSeoFromAboutMe(
     jobTitle: profession,
     description,
     image: ogImage,
+    inLanguage: lang === 'id' ? 'id' : 'en',
   });
 
+  const alternates: SeoAlternate[] = [
+    { hreflang: 'en', href: canonical },
+    { hreflang: 'id', href: `${siteRoot}/?lang=id` },
+    { hreflang: 'x-default', href: canonical },
+  ];
+
   return {
+    lang,
     title,
     description,
     keywords,
     canonical,
     ogImage,
     jsonLd,
+    alternates,
   };
 }

@@ -25,7 +25,15 @@
     "search": "Search…",
     "noDescription": "No description",
     "viewDetails": "View Details",
-    "fallbackError": "Check your connection and try again."
+    "fallbackError": "Check your connection and try again.",
+    "refresh": "Refresh",
+    "preview": "Preview",
+    "retranslate": "Translate ulang",
+    "translationPending": "Translation pending",
+    "noTechnologies": "No technologies",
+    "unknownFile": "Unknown file",
+    "retranslatedTitle": "Translation complete",
+    "retranslatedDescription": "All translations are up to date."
   },
   "offline": {
     "banner": "You are offline — check your internet connection",
@@ -145,6 +153,7 @@
     "loadFailedTitle": "Failed to load contacts",
     "emptyTitle": "No contacts yet",
     "emptyDescription": "Contacts will appear here once added.",
+    "searchEmptyTitle": "No contacts found",
     "footer": "Built with Expo & React Native."
   },
   "auth": {
@@ -245,7 +254,30 @@
       "technologiesLabel": "Technologies",
       "certificatesTitle": "Certificates",
       "noCertificates": "No certificates added yet",
-      "homePreviewTitle": "Home Skills Preview"
+      "homePreviewTitle": "Home Skills Preview",
+      "addSkill": "Add Skill",
+      "addFirstSkill": "Add Your First Skill",
+      "addEducation": "Add Education",
+      "addExperience": "Add Experience",
+      "addCertificate": "Add Certificate",
+      "changeImage": "Change Image",
+      "cvSectionTitle": "Curriculum Vitae (PDF)",
+      "changeCv": "Change CV",
+      "uploadCv": "Upload CV",
+      "changeFile": "Change File",
+      "uploadFile": "Upload File",
+      "deleteSkillTitle": "Delete Skill",
+      "deleteEducationTitle": "Delete Education",
+      "deleteExperienceTitle": "Delete Experience",
+      "deleteCertificateTitle": "Delete Certificate",
+      "deleteItemDescription": "Are you sure you want to delete this item?",
+      "rolePlaceholder": "e.g., Senior Full Stack Developer",
+      "companyPlaceholder": "e.g., Tech Company Inc.",
+      "yearPresentPlaceholder": "e.g., 2022 - Present",
+      "technologiesPlaceholder": "e.g., React, TypeScript, Node.js",
+      "roleDescriptionPlaceholder": "Brief description of your role...",
+      "pendingTitle": "Translation incomplete",
+      "pendingDescription": "About Me saved. Some translations are pending — use Translate ulang to retry."
     },
     "projects": {
       "title": "Projects",
@@ -302,7 +334,22 @@
       "deleteTitle": "Delete Project",
       "deleteDescription": "This action cannot be undone. Are you sure you want to delete this project?",
       "activate": "Activate",
-      "deactivate": "Deactivate"
+      "deactivate": "Deactivate",
+      "draftsOnly": "Drafts Only",
+      "detailTitle": "Project Detail",
+      "additionalContent": "Additional Content (Images & Text)",
+      "addTextBlock": "+ Add Text",
+      "addImageBlock": "+ Add Image",
+      "imageBlockTitle": "Image {index}",
+      "techCount": "{count} technologies",
+      "noTechHint": "No technologies added yet. Add at least one.",
+      "uploadDropHint": "Click to upload or drag & drop",
+      "uploadSizeHint": "Recommended: 16:9 aspect ratio, max 2MB",
+      "dragExternalHint": "Supports local files & dragging images from other tabs",
+      "tapSelectHint": "Tap to select image",
+      "updatedAt": "Updated {date}",
+      "pendingTitle": "Translation incomplete",
+      "pendingDescription": "Project saved. Some translations are pending — use Translate ulang to retry."
     },
     "contacts": {
       "title": "Contacts",
@@ -328,6 +375,15 @@
       "iconLabel": "Custom Icon (optional)",
       "iconPlaceholder": "Lucide icon name (e.g., mail, phone, github)",
       "orderLabel": "Display Order",
+      "valuePhonePlaceholder": "+1 234 567 890",
+      "valueLinkedinPlaceholder": "your-profile",
+      "valueGithubPlaceholder": "your-username",
+      "valueSocialPlaceholder": "@yourhandle",
+      "valueWebsitePlaceholder": "https://yourwebsite.com",
+      "valueGenericPlaceholder": "Enter value",
+      "deleteDescription": "This action cannot be undone. Are you sure you want to delete this contact?",
+      "pendingTitle": "Translation incomplete",
+      "pendingDescription": "Contact saved. Translation is pending — use Translate ulang to retry.",
       "validation": {
         "labelRequired": "Label is required"
       }

@@ -115,7 +115,7 @@ export default function AdminAboutScreen() {
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [i18nPending, setI18nPending] = useState(false);
-  const { lang } = useLanguage();
+  const { t } = useLanguage();
   const [previewMode, setPreviewMode] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; type: 'skill' | 'education' | 'experience' | 'certificate' | null; index: number | null }>({ open: false, type: null, index: null });
   const { colorScheme } = useColorScheme();
@@ -163,9 +163,9 @@ export default function AdminAboutScreen() {
       const url = await uploadImage.mutateAsync({ file, path });
       setImagePreview(url);
       setValue('avatar_url', url, { shouldDirty: true });
-      showToast({ type: 'success', title: 'Uploaded', description: 'Avatar uploaded successfully' });
+      showToast({ type: 'success', title: t('admin.about.uploaded'), description: t('admin.about.avatarUploaded') });
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Upload failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.about.uploadFailed'), description: error.message });
     } finally {
       setUploading(false);
     }
@@ -201,7 +201,7 @@ export default function AdminAboutScreen() {
           await uploadCVFile(mockFile);
         }
       } catch (error: any) {
-        showToast({ type: 'error', title: 'Error picking CV', description: error.message });
+        showToast({ type: 'error', title: t('admin.about.cvPickFailed'), description: error.message });
       }
     }
   };
@@ -212,9 +212,9 @@ export default function AdminAboutScreen() {
       const path = `cv/${Date.now()}-${file.name}`;
       const url = await uploadImage.mutateAsync({ file, path });
       setValue('cv_url', url, { shouldDirty: true });
-      showToast({ type: 'success', title: 'Uploaded', description: 'CV uploaded successfully' });
+      showToast({ type: 'success', title: t('admin.about.uploaded'), description: t('admin.about.cvUploaded') });
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Upload failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.about.uploadFailed'), description: error.message });
     } finally {
       setUploadingCV(false);
     }
@@ -295,11 +295,8 @@ export default function AdminAboutScreen() {
 
   const pendingToast = () => ({
     type: 'warning' as const,
-    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
-    description:
-      lang === 'id'
-        ? 'Konten tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
-        : 'Content saved. Auto-translation failed — press "Translate ulang".',
+    title: t('admin.about.pendingTitle'),
+    description: t('admin.about.pendingDescription'),
   });
 
   const onSubmit = async (data: AboutForm) => {
@@ -333,15 +330,15 @@ export default function AdminAboutScreen() {
       } else {
         showToast({
           type: 'success',
-          title: 'Saved!',
-          description: 'About Me section has been updated.',
+          title: t('admin.about.saved'),
+          description: t('admin.about.savedDescription'),
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Failed to save',
-        description: error.message ?? 'Something went wrong',
+        title: t('admin.about.saveFailed'),
+        description: error.message ?? t('common.fallbackError'),
       });
     } finally {
       setSaving(false);
@@ -366,18 +363,15 @@ export default function AdminAboutScreen() {
       } else {
         showToast({
           type: 'success',
-          title: lang === 'id' ? 'Terjemahan selesai' : 'Translation complete',
-          description:
-            lang === 'id'
-              ? 'Terjemahan ID/EN telah diperbarui.'
-              : 'ID/EN translations have been updated.',
+          title: t('common.retranslatedTitle'),
+          description: t('common.retranslatedDescription'),
         });
       }
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Failed to save',
-        description: error.message ?? 'Something went wrong',
+        title: t('admin.about.saveFailed'),
+        description: error.message ?? t('common.fallbackError'),
       });
     } finally {
       setTranslating(false);
@@ -421,22 +415,22 @@ export default function AdminAboutScreen() {
           <View className={cn('p-6', isWeb ? 'max-w-7xl mx-auto w-full' : 'w-full')}>
             <View className="flex-row items-center justify-between mb-6">
               <Text className={cn('font-bold', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Preview: About Me
+                {t('admin.about.title')}
               </Text>
               <Button variant="ghost" onPress={handlePreview} leftIcon={<Edit2 size={18} className="text-gray-700 dark:text-gray-300" />}>
-                Edit
+                {t('common.edit')}
               </Button>
             </View>
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-4">About Me</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-4">{t('admin.about.title')}</Text>
                 <Text className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
                   {watch('content') || aboutMe?.content}
                 </Text>
               </View>
             </Card>
 
-            <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">Home Skills Preview</Text>
+            <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">{t('admin.about.homePreviewTitle')}</Text>
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row flex-wrap gap-4">
@@ -444,27 +438,27 @@ export default function AdminAboutScreen() {
                     <PreviewSkillBadge key={i} name={skill.name} isDark={isDark} />
                   ))}
                   {watch('skills').filter((s: any) => s.show_on_home).length === 0 && (
-                    <Text className="text-gray-500 dark:text-gray-400">No skills set to show on home.</Text>
+                    <Text className="text-gray-500 dark:text-gray-400">{t('admin.about.noHomeSkills')}</Text>
                   )}
                 </View>
               </View>
             </Card>
 
-            <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">Skills (About Me)</Text>
+            <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">{t('admin.about.skillsTitle')}</Text>
             <View className={cn('flex gap-6 mb-6', isWeb ? 'flex-row' : 'flex-col')}>
               <Card variant="outlined" className="flex-1 p-6 shadow-sm">
                 <View className="flex-row items-center gap-3 mb-6">
                   <View className="p-2 bg-primary-100 dark:bg-primary-900/30 rounded-lg">
                     <Code2 size={24} className="text-primary-600 dark:text-primary-400" />
                   </View>
-                  <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Web Developer</Text>
+                  <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('about.webDeveloper')}</Text>
                 </View>
                 <View className="flex-row flex-wrap gap-4">
                   {watch('skills').filter((s: any) => s.category !== 'data').map((skill: any, i: number) => (
                     <PreviewSkillBadge key={i} name={skill.name} isDark={isDark} />
                   ))}
                   {watch('skills').filter((s: any) => s.category !== 'data').length === 0 && (
-                    <Text className="text-gray-500 dark:text-gray-400">No web developer skills added yet.</Text>
+                    <Text className="text-gray-500 dark:text-gray-400">{t('about.noWebSkills')}</Text>
                   )}
                 </View>
               </Card>
@@ -474,21 +468,21 @@ export default function AdminAboutScreen() {
                   <View className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                     <MaterialCommunityIcons name="database" size={24} className="text-purple-600 dark:text-purple-400" />
                   </View>
-                  <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">Data Scientist</Text>
+                  <Text className="text-xl font-bold text-gray-900 dark:text-gray-100">{t('about.dataScientist')}</Text>
                 </View>
                 <View className="flex-row flex-wrap gap-4">
                   {watch('skills').filter((s: any) => s.category === 'data').map((skill: any, i: number) => (
                     <PreviewSkillBadge key={i} name={skill.name} isDark={isDark} />
                   ))}
                   {watch('skills').filter((s: any) => s.category === 'data').length === 0 && (
-                    <Text className="text-gray-500 dark:text-gray-400">No data scientist skills added yet.</Text>
+                    <Text className="text-gray-500 dark:text-gray-400">{t('about.noDataSkills')}</Text>
                   )}
                 </View>
               </Card>
             </View>
 
             <View>
-              <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">Experience</Text>
+              <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">{t('about.experience')}</Text>
               {watch('experience')?.map((exp: any, index: number) => (
                 <Card variant="outlined" className="mb-4" key={index}>
                   <View className="p-6">
@@ -509,7 +503,7 @@ export default function AdminAboutScreen() {
             </View>
 
             <View>
-              <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">Education</Text>
+              <Text className="font-bold text-2xl text-gray-900 dark:text-gray-100 mb-6 mt-4">{t('about.education')}</Text>
               {watch('education')?.map((edu: any, index: number) => (
                 <Card variant="outlined" className="mb-4" key={index}>
                   <View className="p-6">
@@ -544,17 +538,17 @@ export default function AdminAboutScreen() {
           <View className="flex-row items-center justify-between mb-8">
             <View>
               <Text className={cn('font-bold', isWeb ? 'text-3xl' : 'text-2xl')}>
-                About Me
+                {t('admin.about.title')}
               </Text>
             </View>
             <View className="flex-row gap-3 items-center">
               <Button variant="ghost" onPress={handlePreview} leftIcon={<Eye size={18} className="text-gray-700 dark:text-gray-300" />}>
-                Preview
+                {t('common.preview')}
               </Button>
               {i18nPending && (
                 <View className="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800">
                   <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
-                    {lang === 'id' ? 'Terjemahan tertunda' : 'Translation pending'}
+                    {t('common.translationPending')}
                   </Text>
                 </View>
               )}
@@ -566,7 +560,7 @@ export default function AdminAboutScreen() {
                   loading={translating}
                   disabled={saving || translating}
                 >
-                  Translate ulang
+                  {t('common.retranslate')}
                 </Button>
               )}
               <Button
@@ -575,7 +569,7 @@ export default function AdminAboutScreen() {
                 loading={saving || updateAboutMe.isPending}
                 disabled={!isDirty && !saving}
               >
-                {saving || updateAboutMe.isPending ? 'Saving...' : 'Save Changes'}
+                {saving || updateAboutMe.isPending ? t('common.saving') : t('common.saveChanges')}
               </Button>
             </View>
           </View>
@@ -584,7 +578,7 @@ export default function AdminAboutScreen() {
             {/* Content Section */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Personal Info & Bio</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.about.personalInfo')}</Text>
 
                 <View className="mb-6 flex-row items-center gap-6">
                   {imagePreview ? (
@@ -599,19 +593,19 @@ export default function AdminAboutScreen() {
                     </View>
                   ) : (
                     <View className="w-[100px] h-[100px] rounded-full bg-gray-100 dark:bg-gray-800 items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700">
-                      <Text className="text-gray-400 dark:text-gray-500 text-xs text-center px-2">No Avatar</Text>
+                      <Text className="text-gray-400 dark:text-gray-500 text-xs text-center px-2">{t('admin.about.noAvatar')}</Text>
                     </View>
                   )}
 
                   <View>
-                    <Text className="font-medium text-gray-900 dark:text-gray-100 mb-2">Profile Image</Text>
+                    <Text className="font-medium text-gray-900 dark:text-gray-100 mb-2">{t('admin.about.profileImage')}</Text>
                     <Button
                       variant="outline"
                       size="sm"
                       onPress={handlePickImage}
                       loading={uploading}
                     >
-                      {uploading ? 'Uploading...' : imagePreview ? 'Change Image' : 'Upload Image'}
+                      {uploading ? t('common.loading') : imagePreview ? t('admin.about.changeImage') : t('admin.projects.uploadImage')}
                     </Button>
                   </View>
                 </View>
@@ -622,8 +616,8 @@ export default function AdminAboutScreen() {
                     control={control}
                     render={({ field }) => (
                       <Input
-                        label="Nickname"
-                        placeholder="e.g. Ahmad Rosyid"
+                        label={t('admin.about.nicknameLabel')}
+                        placeholder={t('admin.about.nicknamePlaceholder')}
                         value={field.value}
                         onChangeText={field.onChange}
                         className="flex-1 min-w-[200px]"
@@ -637,8 +631,8 @@ export default function AdminAboutScreen() {
                     control={control}
                     render={({ field }) => (
                       <Input
-                        label="Full Name (Card)"
-                        placeholder="e.g. Ahmad Rosyid A."
+                        label={t('admin.about.fullNameLabel')}
+                        placeholder={t('admin.about.fullNamePlaceholder')}
                         value={field.value}
                         onChangeText={field.onChange}
                         className="flex-1 min-w-[200px]"
@@ -654,8 +648,8 @@ export default function AdminAboutScreen() {
                     control={control}
                     render={({ field }) => (
                       <Input
-                        label="Profession"
-                        placeholder="e.g. Web Developer & Data Scientist"
+                        label={t('admin.about.professionLabel')}
+                        placeholder={t('admin.about.professionPlaceholder')}
                         value={field.value}
                         onChangeText={field.onChange}
                         className="flex-1 min-w-[200px]"
@@ -669,8 +663,8 @@ export default function AdminAboutScreen() {
                     control={control}
                     render={({ field }) => (
                       <Input
-                        label="Years of Experience"
-                        placeholder="e.g. 3+"
+                        label={t('admin.about.yearsLabel')}
+                        placeholder={t('admin.about.yearsPlaceholder')}
                         value={field.value}
                         onChangeText={field.onChange}
                         className="flex-1 min-w-[150px]"
@@ -685,7 +679,7 @@ export default function AdminAboutScreen() {
                   control={control}
                   render={({ field: { value, onChange } }) => (
                     <View className="mb-6 border border-gray-200 dark:border-dark-border rounded-2xl p-5 bg-white dark:bg-dark-surface/50">
-                      <Text className="font-semibold text-gray-800 dark:text-gray-200 mb-3">Curriculum Vitae (PDF)</Text>
+                      <Text className="font-semibold text-gray-800 dark:text-gray-200 mb-3">{t('admin.about.cvSectionTitle')}</Text>
 
                       <View className="flex-row items-center justify-between flex-wrap gap-4">
                         <View className="flex-row items-center gap-3">
@@ -695,13 +689,13 @@ export default function AdminAboutScreen() {
                             loading={uploadingCV}
                             leftIcon={<MaterialCommunityIcons name="file-pdf-box" size={20} color="#ef4444" />}
                           >
-                            {value ? 'Change CV' : 'Upload CV'}
+                            {value ? t('admin.about.changeCv') : t('admin.about.uploadCv')}
                           </Button>
 
                           {value ? (
                             <View className="flex-row items-center px-3 py-1.5 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-full">
                               <MaterialCommunityIcons name="check-circle" size={14} color="#16a34a" style={{ marginRight: 4 }} />
-                              <Text className="text-green-700 dark:text-green-400 text-xs font-bold">Uploaded</Text>
+                              <Text className="text-green-700 dark:text-green-400 text-xs font-bold">{t('admin.about.cvUploadedBadge')}</Text>
                             </View>
                           ) : null}
                         </View>
@@ -734,8 +728,8 @@ export default function AdminAboutScreen() {
                   rules={{ required: true, minLength: 10 }}
                   render={({ field }) => (
                     <Textarea
-                      label="Content"
-                      placeholder="Write about yourself, your experience, passion, etc. Supports multiple lines."
+                      label={t('admin.about.contentLabel')}
+                      placeholder={t('admin.about.contentPlaceholder')}
                       value={field.value}
                       onChangeText={field.onChange}
                       rows={8}
@@ -750,17 +744,17 @@ export default function AdminAboutScreen() {
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row items-center justify-between mb-6">
-                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Skills</Text>
+                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.about.skillsTitle')}</Text>
                   <Button size="sm" leftIcon={<Plus size={16} />} onPress={addSkill} variant="outline">
-                    Add Skill
+                    {t('admin.about.addSkill')}
                   </Button>
                 </View>
 
                 {skillFields.length === 0 ? (
                   <View className="align-center py-12">
-                    <Text className="text-gray-500 dark:text-gray-400 mb-4">No skills added yet</Text>
+                    <Text className="text-gray-500 dark:text-gray-400 mb-4">{t('admin.about.noSkills')}</Text>
                     <Button size="sm" leftIcon={<Plus size={16} />} onPress={addSkill} variant="outline">
-                      Add Your First Skill
+                      {t('admin.about.addFirstSkill')}
                     </Button>
                   </View>
                 ) : (
@@ -787,17 +781,17 @@ export default function AdminAboutScreen() {
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row items-center justify-between mb-6">
-                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Education</Text>
+                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.about.educationTitle')}</Text>
                   <Button size="sm" leftIcon={<Plus size={16} />} onPress={addEdu} variant="outline">
-                    Add Education
+                    {t('admin.about.addEducation')}
                   </Button>
                 </View>
 
                 {eduFields.length === 0 ? (
                   <View className="align-center py-12 items-center">
-                    <Text className="text-gray-500 dark:text-gray-400 mb-4">No education added yet</Text>
+                    <Text className="text-gray-500 dark:text-gray-400 mb-4">{t('admin.about.noEducation')}</Text>
                     <Button size="sm" leftIcon={<Plus size={16} />} onPress={addEdu} variant="outline">
-                      Add Education
+                      {t('admin.about.addEducation')}
                     </Button>
                   </View>
                 ) : (
@@ -824,17 +818,17 @@ export default function AdminAboutScreen() {
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row items-center justify-between mb-6">
-                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Experience</Text>
+                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.about.experienceTitle')}</Text>
                   <Button size="sm" leftIcon={<Plus size={16} />} onPress={addExp} variant="outline">
-                    Add Experience
+                    {t('admin.about.addExperience')}
                   </Button>
                 </View>
 
                 {expFields.length === 0 ? (
                   <View className="align-center py-12 items-center">
-                    <Text className="text-gray-500 dark:text-gray-400 mb-4">No experience added yet</Text>
+                    <Text className="text-gray-500 dark:text-gray-400 mb-4">{t('admin.about.noExperience')}</Text>
                     <Button size="sm" leftIcon={<Plus size={16} />} onPress={addExp} variant="outline">
-                      Add Experience
+                      {t('admin.about.addExperience')}
                     </Button>
                   </View>
                 ) : (
@@ -861,17 +855,17 @@ export default function AdminAboutScreen() {
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row items-center justify-between mb-6">
-                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Certificates</Text>
+                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.about.certificatesTitle')}</Text>
                   <Button size="sm" leftIcon={<Plus size={16} />} onPress={addCert} variant="outline">
-                    Add Certificate
+                    {t('admin.about.addCertificate')}
                   </Button>
                 </View>
 
                 {certFields.length === 0 ? (
                   <View className="align-center py-12 items-center">
-                    <Text className="text-gray-500 dark:text-gray-400 mb-4">No certificates added yet</Text>
+                    <Text className="text-gray-500 dark:text-gray-400 mb-4">{t('admin.about.noCertificates')}</Text>
                     <Button size="sm" leftIcon={<Plus size={16} />} onPress={addCert} variant="outline">
-                      Add Certificate
+                      {t('admin.about.addCertificate')}
                     </Button>
                   </View>
                 ) : (
@@ -902,16 +896,16 @@ export default function AdminAboutScreen() {
       <Modal
         visible={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, type: null, index: null })}
-        title={`Delete ${deleteModal.type === 'skill' ? 'Skill' : deleteModal.type === 'education' ? 'Education' : deleteModal.type === 'experience' ? 'Experience' : 'Certificate'}`}
-        description="Are you sure you want to delete this item?"
+        title={deleteModal.type === 'skill' ? t('admin.about.deleteSkillTitle') : deleteModal.type === 'education' ? t('admin.about.deleteEducationTitle') : deleteModal.type === 'experience' ? t('admin.about.deleteExperienceTitle') : t('admin.about.deleteCertificateTitle')}
+        description={t('admin.about.deleteItemDescription')}
         size="sm"
       >
         <View className="flex-row justify-end gap-3">
           <Button variant="ghost" onPress={() => setDeleteModal({ open: false, type: null, index: null })}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="destructive" onPress={confirmDelete}>
-            Delete
+            {t('common.delete')}
           </Button>
         </View>
       </Modal>
@@ -929,6 +923,7 @@ function SkillRow({ index, isFirst, isLast, field, control, errors, remove, move
   remove: () => void;
   move: (from: number, to: number) => void;
 }) {
+  const { t } = useLanguage();
   const skillError = errors?.[index];
 
   return (
@@ -960,8 +955,8 @@ function SkillRow({ index, isFirst, isLast, field, control, errors, remove, move
           rules={{ required: true }}
           render={({ field: fieldProps }) => (
             <Input
-              label="Skill Name"
-              placeholder="e.g., React, TypeScript"
+              label={t('admin.about.skillNameLabel')}
+              placeholder={t('admin.about.skillNamePlaceholder')}
               value={fieldProps.value}
               onChangeText={fieldProps.onChange}
               error={skillError?.name?.message}
@@ -976,7 +971,7 @@ function SkillRow({ index, isFirst, isLast, field, control, errors, remove, move
           rules={{ required: true }}
           render={({ field: fieldProps }) => (
             <View className="flex-1 min-w-[140px]">
-              <Label>Category</Label>
+              <Label>{t('admin.about.categoryLabel')}</Label>
               <Select
                 value={fieldProps.value}
                 onChange={fieldProps.onChange}
@@ -1027,6 +1022,7 @@ function EducationRow({ index, isFirst, isLast, field, control, errors, remove, 
   remove: () => void;
   move: (from: number, to: number) => void;
 }) {
+  const { t } = useLanguage();
   const eduError = errors?.[index];
 
   return (
@@ -1059,8 +1055,8 @@ function EducationRow({ index, isFirst, isLast, field, control, errors, remove, 
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Degree"
-                placeholder="e.g., Bachelor of Computer Science"
+                label={t('admin.about.degreeLabel')}
+                placeholder={t('admin.about.degreePlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={eduError?.degree?.message}
@@ -1075,8 +1071,8 @@ function EducationRow({ index, isFirst, isLast, field, control, errors, remove, 
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Institution"
-                placeholder="e.g., University of Technology"
+                label={t('admin.about.institutionLabel')}
+                placeholder={t('admin.about.institutionPlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={eduError?.institution?.message}
@@ -1093,8 +1089,8 @@ function EducationRow({ index, isFirst, isLast, field, control, errors, remove, 
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Year"
-                placeholder="e.g., 2015 - 2019"
+                label={t('admin.about.yearLabel')}
+                placeholder={t('admin.about.yearPlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={eduError?.year?.message}
@@ -1108,8 +1104,8 @@ function EducationRow({ index, isFirst, isLast, field, control, errors, remove, 
             control={control}
             render={({ field: fieldProps }) => (
               <Input
-                label="Description (Optional)"
-                placeholder="Brief description..."
+                label={t('admin.about.descriptionLabel')}
+                placeholder={t('admin.about.descriptionPlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={eduError?.description?.message}
@@ -1137,6 +1133,7 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
   remove: () => void;
   move: (from: number, to: number) => void;
 }) {
+  const { t } = useLanguage();
   const expError = errors?.[index];
 
   return (
@@ -1169,8 +1166,8 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Role"
-                placeholder="e.g., Senior Full Stack Developer"
+                label={t('admin.about.roleLabel')}
+                placeholder={t('admin.about.rolePlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={expError?.role?.message}
@@ -1185,8 +1182,8 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Company"
-                placeholder="e.g., Tech Company Inc."
+                label={t('admin.about.companyLabel')}
+                placeholder={t('admin.about.companyPlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={expError?.company?.message}
@@ -1203,8 +1200,8 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
             rules={{ required: true }}
             render={({ field: fieldProps }) => (
               <Input
-                label="Year / Period"
-                placeholder="e.g., 2022 - Present"
+                label={t('admin.about.yearLabel')}
+                placeholder={t('admin.about.yearPresentPlaceholder')}
                 value={fieldProps.value}
                 onChangeText={fieldProps.onChange}
                 error={expError?.year?.message}
@@ -1218,8 +1215,8 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
             control={control}
             render={({ field: fieldProps }) => (
               <Input
-                label="Technologies (comma separated)"
-                placeholder="e.g., React, TypeScript, Node.js"
+                label={t('admin.about.technologiesLabel')}
+                placeholder={t('admin.about.technologiesPlaceholder')}
                 value={fieldProps.value ? fieldProps.value.join(', ') : ''}
                 onChangeText={(text) => fieldProps.onChange(text.split(',').map(s => s.trim()).filter(Boolean))}
                 error={expError?.technologies?.message}
@@ -1233,9 +1230,9 @@ function ExperienceRow({ index, isFirst, isLast, field, control, errors, remove,
           control={control}
           rules={{ required: true }}
           render={({ field: fieldProps }) => (
-            <Input
-              label="Description"
-              placeholder="Brief description of your role..."
+              <Input
+                label={t('admin.about.descriptionLabel')}
+                placeholder={t('admin.about.roleDescriptionPlaceholder')}
               value={fieldProps.value}
               onChangeText={fieldProps.onChange}
               error={expError?.description?.message}
@@ -1262,6 +1259,7 @@ function CertificateRow({ index, isFirst, isLast, field, control, errors, remove
   move: (from: number, to: number) => void;
   setValue: any;
 }) {
+  const { t } = useLanguage();
   const certError = errors?.[index];
   const [uploading, setUploading] = useState(false);
   const uploadImage = useUploadImage();
@@ -1290,7 +1288,7 @@ function CertificateRow({ index, isFirst, isLast, field, control, errors, remove
           await uploadFile(mockFile);
         }
       } catch (error: any) {
-        showToast({ type: 'error', title: 'Error picking file', description: error.message });
+        showToast({ type: 'error', title: t('admin.about.cvPickFailed'), description: error.message });
       }
     }
   };
@@ -1301,9 +1299,9 @@ function CertificateRow({ index, isFirst, isLast, field, control, errors, remove
       const path = `certificates/${Date.now()}-${file.name}`;
       const url = await uploadImage.mutateAsync({ file, path });
       setValue(`certificates.${index}.file_url`, url, { shouldDirty: true });
-      showToast({ type: 'success', title: 'Uploaded', description: 'Certificate PDF uploaded successfully' });
+      showToast({ type: 'success', title: t('admin.about.uploaded'), description: t('admin.about.cvUploaded') });
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Upload failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.about.uploadFailed'), description: error.message });
     } finally {
       setUploading(false);
     }
@@ -1333,17 +1331,17 @@ function CertificateRow({ index, isFirst, isLast, field, control, errors, remove
               <View className="flex-1 w-full flex-row items-center justify-between">
                 <View className="flex-row items-center gap-3 flex-shrink">
                   <Button variant="outline" size="sm" onPress={handlePdfPick} loading={uploading} leftIcon={<MaterialCommunityIcons name="image-plus" size={18} color="#ef4444" />}>
-                    {fieldProps.value ? 'Change File' : 'Upload File'}
+                    {fieldProps.value ? t('admin.about.changeFile') : t('admin.about.uploadFile')}
                   </Button>
                   {fieldProps.value ? (
                     <View className="flex-row items-center gap-2 flex-shrink">
                       <View className="flex-row items-center px-2.5 py-1 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                         <MaterialCommunityIcons name="check-circle" size={14} color="#16a34a" style={{ marginRight: 4 }} />
-                        <Text className="text-green-700 dark:text-green-400 text-xs font-semibold">Uploaded</Text>
+                        <Text className="text-green-700 dark:text-green-400 text-xs font-semibold">{t('admin.about.cvUploadedBadge')}</Text>
                       </View>
                       <Text className="text-gray-500 dark:text-gray-400 text-xs flex-shrink max-w-[120px] md:max-w-[250px]" numberOfLines={1} ellipsizeMode="middle">
                         {(() => {
-                          let name = fieldProps.value.split('/').pop()?.split('?')[0] || 'Unknown file';
+                          let name = fieldProps.value.split('/').pop()?.split('?')[0] || t('common.unknownFile');
                           try { name = decodeURIComponent(name); } catch(e){}
                           return name.replace(/^\d{13}-/, '');
                         })()}

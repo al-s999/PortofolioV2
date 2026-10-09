@@ -10,6 +10,7 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { useAdminStats } from '@/lib/queries';
 import { useProjects } from '@/lib/queries';
 import { useAboutMe } from '@/lib/queries';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdminDashboardScreen() {
   const { width } = useWindowDimensions();
@@ -18,6 +19,7 @@ export default function AdminDashboardScreen() {
   const { data: stats } = useAdminStats();
   const { data: projects } = useProjects();
   const { data: aboutMe } = useAboutMe();
+  const { t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -44,11 +46,11 @@ export default function AdminDashboardScreen() {
           <View className="flex-row items-center justify-between mb-6">
             <View>
               <Text className={cn('font-bold text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Dashboard
+                {t('admin.dashboard.title')}
               </Text>
             </View>
             <Button rightIcon={<RefreshCw size={18} />} variant="outline" onPress={handleRefresh} loading={refreshing}>
-              Refresh
+              {t('common.refresh')}
             </Button>
           </View>
 
@@ -56,7 +58,7 @@ export default function AdminDashboardScreen() {
           <View className={cn('gap-4 mb-6 w-full', isWeb ? 'flex-row' : 'flex-col')}>
             <StatCard
               className={isWeb ? "flex-1" : ""}
-              title="Total Projects"
+              title={t('admin.dashboard.totalProjects')}
               value={stats?.totalProjects ?? 0}
               icon={FolderGit2}
               color="text-blue-500"
@@ -65,7 +67,7 @@ export default function AdminDashboardScreen() {
             />
             <StatCard
               className={isWeb ? "flex-1" : ""}
-              title="Total Contacts"
+              title={t('admin.dashboard.totalContacts')}
               value={stats?.totalContacts ?? 0}
               icon={Mail}
               color="text-green-500"
@@ -74,7 +76,7 @@ export default function AdminDashboardScreen() {
             />
             <StatCard
               className={isWeb ? "flex-1" : ""}
-              title="Projects"
+              title={t('admin.dashboard.featuredProjects')}
               value={stats?.featuredProjects ?? 0}
               icon={TrendingUp}
               color="text-orange-500"
@@ -83,7 +85,7 @@ export default function AdminDashboardScreen() {
             />
             <StatCard
               className={isWeb ? "flex-1" : ""}
-              title="Skills Count"
+              title={t('admin.dashboard.skillsCount')}
               value={aboutMe?.skills?.length ?? 0}
               icon={User}
               color="text-purple-500"
@@ -98,36 +100,36 @@ export default function AdminDashboardScreen() {
               <Card variant="outlined">
                 <View className="p-6">
                   <View className="flex-row items-center justify-between mb-6">
-                    <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Quick Actions</Text>
+                    <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.dashboard.quickActions')}</Text>
                   </View>
                   <View className="space-y-3">
                     <QuickAction
-                      label="Add New Project"
-                      description="Create a new portfolio project"
+                      label={t('admin.dashboard.addProject')}
+                      description={t('admin.dashboard.addProjectDescription')}
                       icon={Plus}
                       color="text-blue-500"
                       bgColor="bg-blue-500"
                       onPress={() => router.push('/admin/projects/new')}
                     />
                     <QuickAction
-                      label="Update About Me"
-                      description="Edit your bio and skills"
+                      label={t('admin.dashboard.updateAbout')}
+                      description={t('admin.dashboard.updateAboutDescription')}
                       icon={User}
                       color="text-green-500"
                       bgColor="bg-green-500"
                       onPress={() => router.push('/admin/about')}
                     />
                     <QuickAction
-                      label="Manage Contacts"
-                      description="Add or update contact links"
+                      label={t('admin.dashboard.manageContacts')}
+                      description={t('admin.dashboard.manageContactsDescription')}
                       icon={Mail}
                       color="text-orange-500"
                       bgColor="bg-orange-500"
                       onPress={() => router.push('/admin/contacts')}
                     />
                     <QuickAction
-                      label="View Portfolio"
-                      description="See your live portfolio"
+                      label={t('admin.dashboard.viewPortfolio')}
+                      description={t('admin.dashboard.viewPortfolioDescription')}
                       icon={ExternalLink}
                       color="text-purple-500"
                       bgColor="bg-purple-500"
@@ -143,9 +145,9 @@ export default function AdminDashboardScreen() {
               <Card variant="outlined">
                 <View className="p-6">
                   <View className="flex-row items-center justify-between mb-6">
-                    <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Recent Projects</Text>
+                    <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.dashboard.recentProjects')}</Text>
                     <Button size="sm" rightIcon={<Plus size={16} />} onPress={() => router.push('/admin/projects/new')}>
-                      Add
+                      {t('common.add')}
                     </Button>
                   </View>
                   {recentProjects.length === 0 ? (
@@ -153,12 +155,12 @@ export default function AdminDashboardScreen() {
                       <Text className="text-gray-400 dark:text-white mb-4 opacity-50">
                         <FolderGit2 size={48} />
                       </Text>
-                      <Text className="text-gray-500 dark:text-gray-400 mb-2">No projects yet</Text>
+                      <Text className="text-gray-500 dark:text-gray-400 mb-2">{t('admin.dashboard.noProjects')}</Text>
                       <Text className="text-sm text-gray-400 dark:text-gray-500 text-center mb-4">
-                        Create your first project to showcase your work
+                        {t('admin.dashboard.createFirstHint')}
                       </Text>
                       <Button size="sm" rightIcon={<Plus size={16} />} onPress={() => router.push('/admin/projects/new')}>
-                        Create Project
+                        {t('admin.dashboard.createProject')}
                       </Button>
                     </View>
                   ) : (
@@ -168,7 +170,7 @@ export default function AdminDashboardScreen() {
                       ))}
                       <Pressable onPress={() => router.push('/admin/projects')} className="mt-2 flex-row items-center gap-1">
                         <Text className="text-sm text-primary-600 dark:text-primary-400 font-medium">
-                          View all projects
+                          {t('home.viewAllProjects')}
                         </Text>
                         <Text className="text-primary-600 dark:text-primary-400">
                           <ArrowRight size={14} />
@@ -224,6 +226,7 @@ function QuickAction({ label, description, icon: Icon, color, bgColor, onPress }
 }
 
 function ProjectRow({ project, onPress }: { project: any; onPress: () => void }) {
+  const { t } = useLanguage();
   return (
     <Pressable onPress={onPress} className="flex-row items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-dark-surface/80 transition-colors">
       {project.image_url && (
@@ -234,7 +237,7 @@ function ProjectRow({ project, onPress }: { project: any; onPress: () => void })
           <Text className="font-medium text-gray-900 dark:text-gray-100 truncate flex-1">{project.title}</Text>
         </View>
         <Text className="text-sm text-gray-500 dark:text-gray-400 truncate">
-          {project.tech_stack?.slice(0, 3).join(', ') ?? 'No technologies'}
+          {project.tech_stack?.slice(0, 3).join(', ') ?? t('common.noTechnologies')}
         </Text>
       </View>
       <Text className="text-gray-400 dark:text-white">

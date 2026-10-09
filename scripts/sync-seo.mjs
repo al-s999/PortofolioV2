@@ -4,7 +4,9 @@
 // - Fetch baris about_me terbaru via Supabase REST, bangun ulang blok SEO di
 //   public/index.html (di antara <!-- SEO:BEGIN --> ... <!-- SEO:END -->)
 //   + tulis public/sitemap.xml.
-// - Aturan nilai SAMA PERSIS dengan lib/seo.ts (buildSeoFromAboutMe).
+// - Aturan nilai SAMA PERSIS dengan lib/seo.ts (buildSeoFromAboutMe), termasuk
+//   varian bahasa: EN default (ditulis ke index.html) + ID (dibangun + di-log
+//   sebagai bukti builder lang-aware; hreflang alternates ikut dirender).
 // - TIDAK PERNAH menggagalkan build: env hilang / fetch gagal / marker hilang
 //   → warning + exit 0, template committed tetap dipakai.
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -33,13 +35,24 @@ function esc(value) {
     .replace(/"/g, '&quot;');
 }
 
-function buildTags(aboutMe) {
+/** Ambil scalar terjemahan dari mirror `i18n` JSONB; EN fallback bila kosong. */
+function localizedField(i18n, lang, field) {
+  if (lang === 'en') return undefined;
+  const value = i18n?.[lang]?.[field];
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function buildTags(aboutMe, lang = 'en') {
   const name = aboutMe?.nickname ?? aboutMe?.full_name ?? 'Ahmad Rosyid';
   const profession =
-    aboutMe?.profession ?? 'Web Developer & Data Scientist';
+    localizedField(aboutMe?.i18n, lang, 'profession') ??
+    aboutMe?.profession ??
+    'Web Developer & Data Scientist';
   const title = `${name} — ${profession}`;
 
-  const cleaned = String(aboutMe?.content ?? '')
+  const cleaned = String(
+    localizedField(aboutMe?.i18n, lang, 'content') ?? aboutMe?.content ?? ''
+  )
     .trim()
     .replace(/\s+/g, ' ');
   const description = cleaned
@@ -58,9 +71,16 @@ function buildTags(aboutMe) {
     jobTitle: profession,
     description,
     image: ogImage,
+    inLanguage: lang === 'id' ? 'id' : 'en',
   }).replace(/</g, '\\u003c');
 
-  return { title, description, keywords, ogImage, jsonLd };
+  const alternates = [
+    { hreflang: 'en', href: SITE },
+    { hreflang: 'id', href: `${SITE_ROOT}/?lang=id` },
+    { hreflang: 'x-default', href: SITE },
+  ];
+
+  return { lang, title, description, keywords, ogImage, jsonLd, alternates };
 }
 
 function renderBlock(tags) {
@@ -70,6 +90,7 @@ function renderBlock(tags) {
     `    <meta name="description" content="${esc(tags.description)}" />`,
     `    <meta name="keywords" content="${esc(tags.keywords)}" />`,
     `    <link rel="canonical" href="${esc(SITE)}" />`,
+    ...tags.alternates.map((a) => `    <link rel="alternate" hreflang="${esc(a.hreflang)}" href="${esc(a.href)}" />`),
     `    <meta property="og:title" content="${esc(tags.title)}" />`,
     `    <meta property="og:description" content="${esc(tags.description)}" />`,
     `    <meta property="og:type" content="website" />`,
@@ -165,7 +186,8 @@ async function main() {
     return;
   }
 
-  const tags = buildTags(aboutMe);
+  const tags = buildTags(aboutMe, 'en');
+  const tagsId = buildTags(aboutMe, 'id');
   const next = html.replace(
     new RegExp(`${BEGIN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${END.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`),
     () => renderBlock(tags)
@@ -173,6 +195,8 @@ async function main() {
   writeIfChanged(htmlPath, next);
   writeIfChanged(join(ROOT, 'public', 'sitemap.xml'), renderSitemap());
   console.log(`[sync-seo] sinkron dari about_me (updated_at: ${aboutMe?.updated_at ?? 'null'}).`);
+  console.log(`[sync-seo] EN title: ${tags.title}`);
+  console.log(`[sync-seo] ID title: ${tagsId.title} (varian hreflang dirender di blok SEO)`);
 }
 
 await main();

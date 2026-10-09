@@ -1,4 +1,4 @@
-import { buildSeoFromAboutMe } from '@/lib/seo';
+import { buildSeoFromAboutMe, type SeoLang } from '@/lib/seo';
 import type { AboutMe } from '@/types';
 
 /** URL produksi — 1 sumber untuk semua generateMetadata + fallback. */
@@ -28,11 +28,11 @@ async function fetchLatestAboutMe(): Promise<AboutMe | null> {
   return null;
 }
 
-/** generateMetadata global — dipakai semua screen, 1 sumber kebenaran. */
-export async function generateGlobalMetadata() {
+/** generateMetadata global — dipakai semua screen, 1 sumber kebenaran. EN default; ID bila caller meminta. */
+export async function generateGlobalMetadata(lang: SeoLang = 'en') {
   try {
-    return buildSeoFromAboutMe(await fetchLatestAboutMe(), SITE_URL);
+    return buildSeoFromAboutMe(await fetchLatestAboutMe(), SITE_URL, lang);
   } catch {
-    return buildSeoFromAboutMe(null, SITE_URL);
+    return buildSeoFromAboutMe(null, SITE_URL, lang);
   }
 }

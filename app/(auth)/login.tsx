@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/auth/AuthProvider';
 import { useState } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { supabase } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function LoginScreen() {
   const { width } = useWindowDimensions();
@@ -18,6 +19,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { signIn } = useAuth();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -28,8 +30,8 @@ export default function LoginScreen() {
     if (!email || !password) {
       showToast({
         type: 'error',
-        title: 'Missing fields',
-        description: 'Please enter both email and password',
+        title: t('auth.missingFields'),
+        description: t('auth.missingFieldsDescription'),
       });
       return;
     }
@@ -42,7 +44,7 @@ export default function LoginScreen() {
     if (error) {
       showToast({
         type: 'error',
-        title: 'Login failed',
+        title: t('auth.loginFailed'),
         description: error.message,
       });
       setLoading(false);
@@ -62,8 +64,8 @@ export default function LoginScreen() {
         await supabase.auth.signOut();
         showToast({
           type: 'error',
-          title: 'Access Denied',
-          description: 'You do not have administrator privileges.',
+          title: t('auth.accessDenied'),
+          description: t('auth.accessDeniedDescription'),
         });
         setLoading(false);
         return;
@@ -72,8 +74,8 @@ export default function LoginScreen() {
 
     showToast({
       type: 'success',
-      title: 'Welcome back!',
-      description: 'You have successfully logged in.',
+      title: t('auth.welcomeBack'),
+      description: t('auth.welcomeBackDescription'),
     });
     router.replace('/admin/dashboard');
     setLoading(false);
@@ -101,7 +103,7 @@ export default function LoginScreen() {
                 <Text className="text-3xl font-bold text-white">P</Text>
               </View>
               <Text className={cn('font-bold text-center text-gray-900 dark:text-white', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Admin Panel
+                {t('auth.panelTitle')}
               </Text>
 
             </View>
@@ -111,8 +113,8 @@ export default function LoginScreen() {
               <Input
                 id="email"
                 type="email"
-                label="Email"
-                placeholder="admin@example.com"
+                label={t('auth.emailLabel')}
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
                 autoComplete="email"
@@ -125,8 +127,8 @@ export default function LoginScreen() {
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                label="Password"
-                placeholder="Enter your password"
+                label={t('auth.passwordLabel')}
+                placeholder={t('auth.passwordPlaceholder')}
                 value={password}
                 onChangeText={setPassword}
                 autoComplete="password"
@@ -149,7 +151,7 @@ export default function LoginScreen() {
                 onPress={handleSubmit}
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? t('auth.signingIn') : t('auth.signIn')}
               </Button>
             </View>
 
@@ -158,10 +160,10 @@ export default function LoginScreen() {
             {/* Back to portfolio */}
             <View className="mt-8 flex-row items-center justify-center">
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                Not an admin?{' '}
+                {t('auth.notAdmin')}{' '}
               </Text>
               <Link href="/" className="text-primary-600 dark:text-primary-400 font-medium text-sm hover:underline">
-                Back to Portfolio
+                {t('auth.backToPortfolio')}
               </Link>
             </View>
           </View>

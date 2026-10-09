@@ -25,7 +25,15 @@
     "search": "Cari…",
     "noDescription": "Tidak ada deskripsi",
     "viewDetails": "Lihat Detail",
-    "fallbackError": "Periksa koneksi lalu coba lagi."
+    "fallbackError": "Periksa koneksi lalu coba lagi.",
+    "refresh": "Segarkan",
+    "preview": "Pratinjau",
+    "retranslate": "Translate ulang",
+    "translationPending": "Terjemahan tertunda",
+    "noTechnologies": "Tidak ada teknologi",
+    "unknownFile": "Berkas tidak dikenal",
+    "retranslatedTitle": "Terjemahan selesai",
+    "retranslatedDescription": "Semua terjemahan sudah terbaru."
   },
   "offline": {
     "banner": "Anda offline — periksa koneksi internet",
@@ -145,6 +153,7 @@
     "loadFailedTitle": "Gagal memuat kontak",
     "emptyTitle": "Belum ada kontak",
     "emptyDescription": "Kontak akan muncul di sini setelah ditambahkan.",
+    "searchEmptyTitle": "Tidak ada kontak ditemukan",
     "footer": "Dibuat dengan Expo & React Native."
   },
   "auth": {
@@ -245,7 +254,30 @@
       "technologiesLabel": "Teknologi",
       "certificatesTitle": "Sertifikat",
       "noCertificates": "Belum ada sertifikat",
-      "homePreviewTitle": "Pratinjau Keahlian Beranda"
+      "homePreviewTitle": "Pratinjau Keahlian Beranda",
+      "addSkill": "Tambah Keahlian",
+      "addFirstSkill": "Tambah Keahlian Pertama",
+      "addEducation": "Tambah Pendidikan",
+      "addExperience": "Tambah Pengalaman",
+      "addCertificate": "Tambah Sertifikat",
+      "changeImage": "Ganti Gambar",
+      "cvSectionTitle": "Curriculum Vitae (PDF)",
+      "changeCv": "Ganti CV",
+      "uploadCv": "Unggah CV",
+      "changeFile": "Ganti Berkas",
+      "uploadFile": "Unggah Berkas",
+      "deleteSkillTitle": "Hapus Keahlian",
+      "deleteEducationTitle": "Hapus Pendidikan",
+      "deleteExperienceTitle": "Hapus Pengalaman",
+      "deleteCertificateTitle": "Hapus Sertifikat",
+      "deleteItemDescription": "Yakin ingin menghapus item ini?",
+      "rolePlaceholder": "cth. Senior Full Stack Developer",
+      "companyPlaceholder": "cth. Tech Company Inc.",
+      "yearPresentPlaceholder": "cth. 2022 - Sekarang",
+      "technologiesPlaceholder": "cth. React, TypeScript, Node.js",
+      "roleDescriptionPlaceholder": "Deskripsi singkat peran Anda...",
+      "pendingTitle": "Terjemahan belum selesai",
+      "pendingDescription": "Tentang Saya tersimpan. Sebagian terjemahan tertunda — gunakan Translate ulang untuk mencoba lagi."
     },
     "projects": {
       "title": "Proyek",
@@ -302,7 +334,22 @@
       "deleteTitle": "Hapus Proyek",
       "deleteDescription": "Tindakan ini tidak bisa dibatalkan. Yakin ingin menghapus proyek ini?",
       "activate": "Aktifkan",
-      "deactivate": "Nonaktifkan"
+      "deactivate": "Nonaktifkan",
+      "draftsOnly": "Hanya Draf",
+      "detailTitle": "Detail Proyek",
+      "additionalContent": "Konten Tambahan (Gambar & Teks)",
+      "addTextBlock": "+ Tambah Teks",
+      "addImageBlock": "+ Tambah Gambar",
+      "imageBlockTitle": "Gambar {index}",
+      "techCount": "{count} teknologi",
+      "noTechHint": "Belum ada teknologi. Tambahkan minimal satu.",
+      "uploadDropHint": "Klik untuk mengunggah atau seret & letakkan",
+      "uploadSizeHint": "Disarankan: rasio 16:9, maks 2MB",
+      "dragExternalHint": "Mendukung berkas lokal & menyeret gambar dari tab lain",
+      "tapSelectHint": "Ketuk untuk memilih gambar",
+      "updatedAt": "Diperbarui {date}",
+      "pendingTitle": "Terjemahan belum selesai",
+      "pendingDescription": "Proyek tersimpan. Sebagian terjemahan tertunda — gunakan Translate ulang untuk mencoba lagi."
     },
     "contacts": {
       "title": "Kontak",
@@ -328,6 +375,15 @@
       "iconLabel": "Ikon Kustom (opsional)",
       "iconPlaceholder": "Nama ikon Lucide (cth. mail, phone, github)",
       "orderLabel": "Urutan Tampil",
+      "valuePhonePlaceholder": "+1 234 567 890",
+      "valueLinkedinPlaceholder": "your-profile",
+      "valueGithubPlaceholder": "your-username",
+      "valueSocialPlaceholder": "@yourhandle",
+      "valueWebsitePlaceholder": "https://situsweb-anda.com",
+      "valueGenericPlaceholder": "Masukkan nilai",
+      "deleteDescription": "Tindakan ini tidak bisa dibatalkan. Yakin ingin menghapus kontak ini?",
+      "pendingTitle": "Terjemahan belum selesai",
+      "pendingDescription": "Kontak tersimpan. Terjemahan tertunda — gunakan Translate ulang untuk mencoba lagi.",
       "validation": {
         "labelRequired": "Label wajib diisi"
       }

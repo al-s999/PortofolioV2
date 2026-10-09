@@ -71,15 +71,12 @@ export default function AdminContactsScreen() {
   const [newContactModal, setNewContactModal] = useState(false);
   const [pendingIds, setPendingIds] = useState<Record<string, boolean>>({});
   const [retranslatingId, setRetranslatingId] = useState<string | null>(null);
-  const { lang } = useLanguage();
+  const { t } = useLanguage();
 
   const pendingToast = () => ({
     type: 'warning' as const,
-    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
-    description:
-      lang === 'id'
-        ? 'Kontak tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
-        : 'Contact saved. Auto-translation failed — press "Translate ulang".',
+    title: t('admin.contacts.pendingTitle'),
+    description: t('admin.contacts.pendingDescription'),
   });
 
   // "Translate ulang" for a single row: re-runs full collect+translate+merge.
@@ -102,10 +99,10 @@ export default function AdminContactsScreen() {
       if (pending) {
         showToast(pendingToast());
       } else {
-        showToast({ type: 'success', title: 'Updated', description: 'Contact has been updated.' });
+        showToast({ type: 'success', title: t('common.retranslatedTitle'), description: t('common.retranslatedDescription') });
       }
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.contacts.failed'), description: error.message });
     } finally {
       setRetranslatingId(null);
     }
@@ -130,13 +127,13 @@ export default function AdminContactsScreen() {
       await deleteContact.mutateAsync(deleteModal.contact.id);
       showToast({
         type: 'success',
-        title: 'Deleted',
-        description: 'Contact has been removed.',
+        title: t('admin.contacts.deleted'),
+        description: t('admin.contacts.deletedDescription'),
       });
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Failed to delete',
+        title: t('admin.contacts.deleteFailed'),
         description: error.message,
       });
     } finally {
@@ -159,22 +156,22 @@ export default function AdminContactsScreen() {
           <View className="flex-row items-center justify-between mb-6">
             <View>
               <Text className={cn('font-bold', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Contacts
+                {t('admin.contacts.title')}
               </Text>
             </View>
             <View className="flex-row gap-3">
               <Button variant="ghost" onPress={handleRefresh} leftIcon={<RefreshCw size={18} />} loading={refreshing}>
-                Refresh
+                {t('common.refresh')}
               </Button>
               <Button rightIcon={<Plus size={18} />} onPress={() => setNewContactModal(true)}>
-                New Contact
+                {t('admin.contacts.newTitle')}
               </Button>
             </View>
           </View>
 
           {/* Search */}
           <Input
-            placeholder="Search contacts..."
+            placeholder={t('admin.contacts.searchPlaceholder')}
             value={searchQuery}
             onChangeText={setSearchQuery}
             leftIcon={<Search size={20} stroke="gray" />}
@@ -193,11 +190,11 @@ export default function AdminContactsScreen() {
           ) : filteredContacts.length === 0 ? (
             <Card variant="outlined" className="p-12 align-center">
               <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                {searchQuery ? 'No contacts found' : 'No contacts yet'}
+                {searchQuery ? t('contact.searchEmptyTitle') : t('contact.emptyTitle')}
               </Text>
               {!searchQuery && (
                 <Button rightIcon={<Plus size={18} />} onPress={() => setNewContactModal(true)} className="mt-4">
-                  Add Contact
+                  {t('admin.contacts.newTitle')}
                 </Button>
               )}
             </Card>
@@ -226,16 +223,16 @@ export default function AdminContactsScreen() {
       <Modal
         visible={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, contact: null })}
-        title="Delete Contact"
-        description="This action cannot be undone. Are you sure you want to delete this contact?"
+        title={t('admin.contacts.deleteTitle')}
+        description={t('admin.contacts.deleteDescription')}
         size="sm"
       >
         <View className="flex-row justify-end gap-3">
           <Button variant="ghost" onPress={() => setDeleteModal({ open: false, contact: null })}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="destructive" onPress={handleDelete} loading={deleteContact.isPending}>
-            Delete
+            {t('common.delete')}
           </Button>
         </View>
       </Modal>
@@ -262,7 +259,7 @@ export default function AdminContactsScreen() {
               if (pending) {
                 showToast(pendingToast());
               } else {
-                showToast({ type: 'success', title: 'Updated', description: 'Contact has been updated.' });
+                showToast({ type: 'success', title: t('admin.contacts.updated'), description: t('admin.contacts.updatedDescription') });
               }
             } else {
               const { payload, pending } = await withAutoTranslations('contacts', data);
@@ -271,13 +268,13 @@ export default function AdminContactsScreen() {
                 if (created?.id) setPendingIds((m) => ({ ...m, [created.id]: true }));
                 showToast(pendingToast());
               } else {
-                showToast({ type: 'success', title: 'Created', description: 'Contact has been added.' });
+                showToast({ type: 'success', title: t('admin.contacts.created'), description: t('admin.contacts.createdDescription') });
               }
             }
             setNewContactModal(false);
             setEditModal({ open: false, contact: null });
           } catch (error: any) {
-            showToast({ type: 'error', title: 'Failed', description: error.message });
+            showToast({ type: 'error', title: t('admin.contacts.failed'), description: error.message });
           }
         }}
       />
@@ -295,6 +292,7 @@ function ContactRow({ contact, onEdit, onDelete, onToggleActive, translationPend
   onRetranslate?: () => void;
 }) {
   const { colorScheme } = useColorScheme();
+  const { t } = useLanguage();
   const Icon = contactIcons[contact.type] ?? contactIcons.custom;
   // Legacy rows predate the i18n mirror — offer backfill alongside pending.
   const needsTranslation =
@@ -329,7 +327,7 @@ function ContactRow({ contact, onEdit, onDelete, onToggleActive, translationPend
             {translationPending === true && (
               <View className="self-start mt-1.5 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800">
                 <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
-                  Translation pending
+                  {t('common.translationPending')}
                 </Text>
               </View>
             )}
@@ -338,27 +336,27 @@ function ContactRow({ contact, onEdit, onDelete, onToggleActive, translationPend
                 onPress={onRetranslate}
                 disabled={retranslating === true}
                 className="self-start mt-1.5"
-                accessibilityLabel="Translate ulang"
+                accessibilityLabel={t('common.retranslate')}
               >
                 <Text className="text-primary-600 dark:text-primary-400 text-xs font-semibold">
-                  {retranslating === true ? 'Translating…' : 'Translate ulang'}
+                  {retranslating === true ? t('common.loading') : t('common.retranslate')}
                 </Text>
               </Pressable>
             )}
           </View>
           <View className="flex-col items-end gap-2">
             <View className="flex-row gap-1">
-              <Pressable onPress={onToggleActive} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={contact.is_active ? 'Deactivate' : 'Activate'}>
+              <Pressable onPress={onToggleActive} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={contact.is_active ? t('admin.projects.deactivate') : t('admin.projects.activate')}>
                 {contact.is_active ? (
                   <Eye size={18} stroke="gray" />
                 ) : (
                   <EyeOff size={18} stroke="gray" />
                 )}
               </Pressable>
-              <Pressable onPress={onEdit} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel="Edit">
+              <Pressable onPress={onEdit} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={t('common.edit')}>
                 <Edit2 size={18} stroke="gray" />
               </Pressable>
-              <Pressable onPress={onDelete} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" accessibilityLabel="Delete">
+              <Pressable onPress={onDelete} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" accessibilityLabel={t('common.delete')}>
                 <Trash2 size={18} className="text-red-500" />
               </Pressable>
             </View>
@@ -395,6 +393,7 @@ function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }
 }) {
   const isEditing = !!contact;
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [submitting, setSubmitting] = useState(false);
   const [translating, setTranslating] = useState(false);
 
@@ -470,14 +469,14 @@ function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }
     <Modal
       visible={visible}
       onClose={onClose}
-      title={isEditing ? 'Edit Contact' : 'New Contact'}
-      description={isEditing ? 'Update your contact information' : 'Add a new contact method to your portfolio'}
+      title={isEditing ? t('admin.contacts.editTitle') : t('admin.contacts.newTitle')}
+      description={isEditing ? t('admin.contacts.editDescription') : t('admin.contacts.newDescription')}
       size="md"
     >
       <View>
         <View className="space-y-4">
           <View className="z-50">
-            <Label>Contact Type</Label>
+            <Label>{t('admin.contacts.typeLabel')}</Label>
             <Select
               id="type"
               value={watch('type')}
@@ -489,33 +488,33 @@ function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }
           </View>
 
           <Input
-            label="Label"
-            placeholder="e.g., Email, Phone, LinkedIn"
+            label={t('admin.contacts.labelLabel')}
+            placeholder={t('admin.contacts.labelPlaceholder')}
             error={errors.label?.message}
             {...register('label')}
           />
 
           <Input
-            label="Value"
-            placeholder={selectedType === 'email' ? 'you@example.com' :
-              selectedType === 'phone' ? '+1 234 567 890' :
-                selectedType === 'linkedin' ? 'your-profile' :
-                  selectedType === 'github' ? 'your-username' :
-                    selectedType === 'twitter' ? '@yourhandle' :
-                      selectedType === 'instagram' ? '@yourhandle' :
-                        selectedType === 'website' ? 'https://yourwebsite.com' : 'Enter value'}
+            label={t('admin.contacts.valueLabel')}
+            placeholder={selectedType === 'email' ? t('admin.contacts.valueEmailPlaceholder') :
+              selectedType === 'phone' ? t('admin.contacts.valuePhonePlaceholder') :
+                selectedType === 'linkedin' ? t('admin.contacts.valueLinkedinPlaceholder') :
+                  selectedType === 'github' ? t('admin.contacts.valueGithubPlaceholder') :
+                    selectedType === 'twitter' ? t('admin.contacts.valueSocialPlaceholder') :
+                      selectedType === 'instagram' ? t('admin.contacts.valueSocialPlaceholder') :
+                        selectedType === 'website' ? t('admin.contacts.valueWebsitePlaceholder') : t('admin.contacts.valueGenericPlaceholder')}
             error={errors.value?.message}
             {...register('value')}
           />
 
           <Input
-            label="Custom Icon (optional)"
-            placeholder="Lucide icon name (e.g., mail, phone, github)"
+            label={t('admin.contacts.iconLabel')}
+            placeholder={t('admin.contacts.iconPlaceholder')}
             {...register('icon')}
           />
 
           <Input
-            label="Display Order"
+            label={t('admin.contacts.orderLabel')}
             type="number"
             value={String(watch('order_index') ?? 0)}
             onChangeText={(v) => setValue('order_index', Number(v) || 0)}
@@ -525,7 +524,7 @@ function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }
 
         <View className="flex-row justify-end gap-3 mt-6">
           <Button variant="ghost" onPress={onClose}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           {isEditing && onRetranslate && (
             <Button
@@ -535,11 +534,11 @@ function ContactFormModal({ visible, onClose, contact, onSubmit, onRetranslate }
               loading={translating}
               disabled={submitting || translating}
             >
-              Translate ulang
+              {t('common.retranslate')}
             </Button>
           )}
           <Button onPress={() => handleSubmit(handleFormSubmit)()} loading={submitting}>
-            {isEditing ? 'Update' : 'Create'}
+            {isEditing ? t('common.update') : t('common.create')}
           </Button>
         </View>
       </View>

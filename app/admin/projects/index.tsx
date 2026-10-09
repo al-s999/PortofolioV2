@@ -14,6 +14,7 @@ import { useProjects, useUpdateProject } from '@/lib/queries';
 import { useDeleteProject } from '@/lib/queries';
 import { useReorderProjects } from '@/lib/queries';
 import { useToast } from '@/components/ui/Toast';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useState, useEffect } from 'react';
 import { Image } from 'react-native';
 import { formatDate } from '@/lib/utils/cn';
@@ -27,6 +28,7 @@ export default function AdminProjectsScreen() {
   const updateProject = useUpdateProject();
   const reorderProjects = useReorderProjects();
   const { showToast } = useToast();
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'featured' | 'draft'>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -56,13 +58,13 @@ export default function AdminProjectsScreen() {
       await deleteProject.mutateAsync(deleteModal.project.id);
       showToast({
         type: 'success',
-        title: 'Deleted',
-        description: 'Project has been removed.',
+        title: t('admin.projects.deleted'),
+        description: t('admin.projects.deletedDescription'),
       });
     } catch (error: any) {
       showToast({
         type: 'error',
-        title: 'Failed to delete',
+        title: t('admin.projects.deleteFailed'),
         description: error.message,
       });
     } finally {
@@ -85,15 +87,15 @@ export default function AdminProjectsScreen() {
           <View className="flex-row items-center justify-between mb-6">
             <View>
               <Text className={cn('font-bold', isWeb ? 'text-3xl' : 'text-2xl')}>
-                Projects
+                {t('admin.projects.title')}
               </Text>
             </View>
             <View className="flex-row gap-3">
               <Button variant="ghost" onPress={handleRefresh} leftIcon={<RefreshCw size={18} />} loading={refreshing}>
-                Refresh
+                {t('common.refresh')}
               </Button>
               <Button rightIcon={<Plus size={18} />} onPress={() => router.push('/admin/projects/new')}>
-                New Project
+                {t('admin.projects.newTitle')}
               </Button>
             </View>
           </View>
@@ -101,7 +103,7 @@ export default function AdminProjectsScreen() {
           {/* Search & Filters */}
           <View className={cn('gap-4 mb-6', isWeb ? 'flex-row' : 'flex-col')}>
             <Input
-              placeholder="Search projects..."
+              placeholder={t('admin.projects.searchPlaceholder')}
               value={searchQuery}
               onChangeText={setSearchQuery}
               leftIcon={<Search size={20} color="gray" />}
@@ -111,9 +113,9 @@ export default function AdminProjectsScreen() {
               value={selectedFilter}
               onChange={(v) => setSelectedFilter(v as 'all' | 'featured' | 'draft')}
               options={[
-                { value: 'all', label: 'All Projects' },
-                { value: 'featured', label: 'Featured Only' },
-                { value: 'draft', label: 'Drafts Only' },
+                { value: 'all', label: t('projects.filterAll') },
+                { value: 'featured', label: t('admin.projects.featured') },
+                { value: 'draft', label: t('admin.projects.draftsOnly') },
               ]}
               className={cn(isWeb ? 'w-48' : 'w-full')}
               leftIcon={<Filter size={20} stroke="gray" />}
@@ -132,16 +134,16 @@ export default function AdminProjectsScreen() {
           ) : filteredProjects.length === 0 ? (
             <Card variant="outlined" className="p-12 align-center">
               <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                {searchQuery || selectedFilter !== 'all' ? 'No projects found' : 'No projects yet'}
+                {searchQuery || selectedFilter !== 'all' ? t('projects.noProjects') : t('admin.dashboard.noProjects')}
               </Text>
               {(searchQuery || selectedFilter !== 'all') && (
                 <Button variant="outline" onPress={() => { setSearchQuery(''); setSelectedFilter('all'); }}>
-                  Clear Filters
+                  {t('projects.clearFilters')}
                 </Button>
               )}
               {(!searchQuery && selectedFilter === 'all') && (
                 <Button rightIcon={<Plus size={18} />} onPress={() => router.push('/admin/projects/new')} className="mt-4">
-                  Create Project
+                  {t('admin.dashboard.createProject')}
                 </Button>
               )}
             </Card>
@@ -159,7 +161,7 @@ export default function AdminProjectsScreen() {
                     try {
                       await updateProject.mutateAsync({ id: project.id, featured: !project.featured });
                     } catch (error) {
-                      showToast({ type: 'error', title: 'Failed', description: 'Failed to update visibility' });
+                      showToast({ type: 'error', title: t('admin.projects.failed'), description: t('admin.projects.visibilityFailed') });
                     }
                   }}
                 />
@@ -173,16 +175,16 @@ export default function AdminProjectsScreen() {
       <Modal
         visible={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, project: null })}
-        title="Delete Project"
-        description="This action cannot be undone. Are you sure you want to delete this project?"
+        title={t('admin.projects.deleteTitle')}
+        description={t('admin.projects.deleteDescription')}
         size="sm"
       >
         <View className="flex-row justify-end gap-3">
           <Button variant="ghost" onPress={() => setDeleteModal({ open: false, project: null })}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="destructive" onPress={handleDelete} loading={deleteProject.isPending}>
-            Delete
+            {t('common.delete')}
           </Button>
         </View>
       </Modal>
@@ -198,6 +200,7 @@ function ProjectRow({ project, index, onEdit, onDelete, onView, onToggleFeatured
   onView: () => void;
   onToggleFeatured: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <Card variant="outlined" className={cn(!project.featured && 'opacity-50')}>
       <Pressable onPress={onView} className="p-4">
@@ -216,7 +219,7 @@ function ProjectRow({ project, index, onEdit, onDelete, onView, onToggleFeatured
               </Text>
             </View>
             <Text className="text-gray-600 dark:text-gray-400 text-sm mb-2" numberOfLines={2}>
-              {project.short_description ?? project.description?.slice(0, 100) ?? 'No description'}
+              {project.short_description ?? project.description?.slice(0, 100) ?? t('projects.noDescription')}
             </Text>
             <View className="flex-row flex-wrap gap-1.5 mb-3">
               {project.tech_stack?.slice(0, 4).map((tech: string) => (
@@ -227,18 +230,18 @@ function ProjectRow({ project, index, onEdit, onDelete, onView, onToggleFeatured
               )}
             </View>
             <Text className="text-xs text-gray-400 dark:text-gray-500">
-              Updated {formatDate(project.updated_at)}
+              {t('admin.projects.updatedAt').replace('{date}', formatDate(project.updated_at))}
             </Text>
           </View>
           <View className="flex-col items-end gap-2">
             <View className="flex-row gap-1">
-              <Pressable onPress={(e: any) => { e.stopPropagation(); onToggleFeatured(); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={project.featured ? 'Deactivate' : 'Activate'}>
+              <Pressable onPress={(e: any) => { e.stopPropagation(); onToggleFeatured(); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={project.featured ? t('admin.projects.deactivate') : t('admin.projects.activate')}>
                 {project.featured ? <Eye size={18} stroke="gray" /> : <EyeOff size={18} stroke="gray" />}
               </Pressable>
-              <Pressable onPress={(e: any) => { e.stopPropagation(); onEdit(); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel="Edit">
+              <Pressable onPress={(e: any) => { e.stopPropagation(); onEdit(); }} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" accessibilityLabel={t('common.edit')}>
                 <Edit2 size={18} stroke="gray" />
               </Pressable>
-              <Pressable onPress={(e: any) => { e.stopPropagation(); onDelete(); }} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" accessibilityLabel="Delete">
+              <Pressable onPress={(e: any) => { e.stopPropagation(); onDelete(); }} className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" accessibilityLabel={t('common.delete')}>
                 <Trash2 size={18} className="text-red-500" />
               </Pressable>
             </View>

@@ -75,7 +75,7 @@ export default function AdminProjectNewScreen() {
   const [saving, setSaving] = useState(false);
   const [translating, setTranslating] = useState(false);
   const [i18nPending, setI18nPending] = useState(false);
-  const { lang } = useLanguage();
+  const { t } = useLanguage();
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -189,9 +189,9 @@ export default function AdminProjectNewScreen() {
       const url = await uploadImage.mutateAsync({ file, path });
       setImagePreview(url);
       setValue('image_url', url);
-      showToast({ type: 'success', title: 'Uploaded', description: 'Image uploaded successfully' });
+      showToast({ type: 'success', title: t('admin.about.uploaded'), description: t('admin.projects.imageUploaded') });
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Upload failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.about.uploadFailed'), description: error.message });
     } finally {
       setUploading(false);
     }
@@ -224,7 +224,7 @@ export default function AdminProjectNewScreen() {
             const url = await uploadImage.mutateAsync({ file, path });
             setValue(`content_blocks.${index}.image_url`, url, { shouldDirty: true });
           } catch (error: any) {
-            showToast({ type: 'error', title: 'Upload failed', description: error.message });
+            showToast({ type: 'error', title: t('admin.about.uploadFailed'), description: error.message });
           } finally {
             setUploading(false);
           }
@@ -246,11 +246,8 @@ export default function AdminProjectNewScreen() {
 
   const pendingToast = () => ({
     type: 'warning' as const,
-    title: lang === 'id' ? 'Tersimpan — terjemahan tertunda' : 'Saved — translation pending',
-    description:
-      lang === 'id'
-        ? 'Proyek tersimpan. Terjemahan otomatis gagal — tekan "Translate ulang".'
-        : 'Project saved. Auto-translation failed — press "Translate ulang".',
+    title: t('admin.projects.pendingTitle'),
+    description: t('admin.projects.pendingDescription'),
   });
 
   const existingI18n =
@@ -275,7 +272,7 @@ export default function AdminProjectNewScreen() {
         if (pending) {
           showToast(pendingToast());
         } else {
-          showToast({ type: 'success', title: 'Updated', description: 'Project has been updated.' });
+          showToast({ type: 'success', title: t('admin.projects.updated'), description: t('admin.projects.updatedDescription') });
         }
       } else {
         await createProject.mutateAsync(payload);
@@ -284,12 +281,12 @@ export default function AdminProjectNewScreen() {
           // warning toast is the pending signal; re-translate from edit.
           showToast(pendingToast());
         } else {
-          showToast({ type: 'success', title: 'Created', description: 'Project has been created.' });
+          showToast({ type: 'success', title: t('admin.projects.created'), description: t('admin.projects.createdDescription') });
         }
         router.replace('/admin/projects');
       }
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.projects.failed'), description: error.message });
     } finally {
       setSaving(false);
     }
@@ -311,15 +308,12 @@ export default function AdminProjectNewScreen() {
       } else {
         showToast({
           type: 'success',
-          title: lang === 'id' ? 'Terjemahan selesai' : 'Translation complete',
-          description:
-            lang === 'id'
-              ? 'Terjemahan ID/EN telah diperbarui.'
-              : 'ID/EN translations have been updated.',
+          title: t('common.retranslatedTitle'),
+          description: t('common.retranslatedDescription'),
         });
       }
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.projects.failed'), description: error.message });
     } finally {
       setTranslating(false);
     }
@@ -330,10 +324,10 @@ export default function AdminProjectNewScreen() {
     setDeleting(true);
     try {
       await deleteProject.mutateAsync(projectId);
-      showToast({ type: 'success', title: 'Deleted', description: 'Project has been removed.' });
+      showToast({ type: 'success', title: t('admin.projects.deleted'), description: t('admin.projects.deletedDescription') });
       router.replace('/admin/projects');
     } catch (error: any) {
-      showToast({ type: 'error', title: 'Failed', description: error.message });
+      showToast({ type: 'error', title: t('admin.projects.failed'), description: error.message });
     } finally {
       setDeleting(false);
       setDeleteModal(false);
@@ -357,20 +351,20 @@ export default function AdminProjectNewScreen() {
               </Pressable>
               <View>
                 <Text className={cn('font-bold', isWeb ? 'text-2xl' : 'text-xl')}>
-                  {isEditing ? 'Edit' : 'New Project'}
+                  {isEditing ? t('admin.projects.editTitle') : t('admin.projects.newTitle')}
                 </Text>
               </View>
             </View>
             <View className="flex-row gap-3">
               {isEditing && (
                 <Button variant="destructive-ghost" onPress={() => setDeleteModal(true)} leftIcon={<Trash2 size={18} className="text-red-500" />}>
-                  Delete
+                  {t('common.delete')}
                 </Button>
               )}
               {i18nPending && (
                 <View className="px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-800 self-center">
                   <Text className="text-amber-700 dark:text-amber-300 text-xs font-semibold">
-                    {lang === 'id' ? 'Terjemahan tertunda' : 'Translation pending'}
+                    {t('common.translationPending')}
                   </Text>
                 </View>
               )}
@@ -382,7 +376,7 @@ export default function AdminProjectNewScreen() {
                   loading={translating}
                   disabled={saving || translating}
                 >
-                  Translate ulang
+                  {t('common.retranslate')}
                 </Button>
               )}
               <Button
@@ -391,7 +385,7 @@ export default function AdminProjectNewScreen() {
                 loading={saving || createProject.isPending || updateProject.isPending}
                 disabled={!isDirty && !saving}
               >
-                {saving || createProject.isPending || updateProject.isPending ? 'Saving...' : 'Save Project'}
+                {saving || createProject.isPending || updateProject.isPending ? t('common.saving') : t('common.saveChanges')}
               </Button>
             </View>
           </View>
@@ -400,27 +394,27 @@ export default function AdminProjectNewScreen() {
             {/* Basic Info */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Basic Information</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.projects.basicInfo')}</Text>
 
                 <View className="space-y-4">
                   <Input
-                    label="Project Title"
-                    placeholder="e.g., E-Commerce Platform"
+                    label={t('admin.projects.titleLabel')}
+                    placeholder={t('admin.projects.titlePlaceholder')}
                     error={errors.title?.message}
                     {...register('title')}
                   />
 
                   <Textarea
-                    label="Description"
-                    placeholder="Detailed description of the project, challenges, solutions, and outcomes..."
+                    label={t('admin.projects.descriptionLabel')}
+                    placeholder={t('admin.projects.descriptionPlaceholder')}
                     rows={6}
                     error={errors.description?.message}
                     {...register('description')}
                   />
 
                   <Input
-                    label="Short Description"
-                    placeholder="Brief summary for project cards (max 200 chars)"
+                    label={t('admin.projects.shortDescriptionLabel')}
+                    placeholder={t('admin.projects.shortDescriptionPlaceholder')}
                     error={errors.short_description?.message}
                     {...register('short_description')}
                     maxLength={200}
@@ -432,7 +426,7 @@ export default function AdminProjectNewScreen() {
             {/* Image */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Project Image</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.projects.imageTitle')}</Text>
 
                 <View className="space-y-4">
                   {imagePreview ? (
@@ -455,18 +449,18 @@ export default function AdminProjectNewScreen() {
                       <View className="align-center">
                         <ImageIcon size={48} color="gray" />
                         <Text className="text-gray-500 dark:text-gray-400 mt-2">
-                          Click to upload or drag & drop
+                          {t('admin.projects.uploadDropHint')}
                         </Text>
                         <Text className="text-sm text-gray-400 dark:text-gray-500">
-                          Recommended: 16:9 aspect ratio, max 2MB
+                          {t('admin.projects.uploadSizeHint')}
                         </Text>
                       </View>
                     </Pressable>
                   )}
 
                   <Input
-                    label="Or enter image URL"
-                    placeholder="https://example.com/image.jpg"
+                    label={t('admin.projects.imageUrlLabel')}
+                    placeholder={t('admin.projects.imageUrlPlaceholder')}
                     value={watch('image_url') || ''}
                     onChangeText={(v) => { setValue('image_url', v); setImagePreview(v || null); }}
                     error={errors.image_url?.message}
@@ -478,7 +472,7 @@ export default function AdminProjectNewScreen() {
             {/* Content Blocks */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Additional Content (Images & Text)</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.projects.additionalContent')}</Text>
                 
                 <View className="space-y-6">
                   {blockFields.map((field, index) => {
@@ -489,10 +483,10 @@ export default function AdminProjectNewScreen() {
                       <View key={field.id} className="p-4 border border-gray-200 dark:border-gray-800 rounded-xl relative">
                         <View className="absolute right-2 top-2 z-10 flex-row gap-2 bg-white dark:bg-dark-surface p-1 rounded-md shadow-sm">
                           <Pressable onPress={() => moveBlock(index, index - 1)} disabled={index === 0} className={cn("p-1", index === 0 && "opacity-50")}>
-                            <Text className="text-gray-500 text-xs">Up</Text>
+                            <Text className="text-gray-500 text-xs">{t('admin.projects.moveUp')}</Text>
                           </Pressable>
                           <Pressable onPress={() => moveBlock(index, index + 1)} disabled={index === blockFields.length - 1} className={cn("p-1", index === blockFields.length - 1 && "opacity-50")}>
-                            <Text className="text-gray-500 text-xs">Down</Text>
+                            <Text className="text-gray-500 text-xs">{t('admin.projects.moveDown')}</Text>
                           </Pressable>
                           <Pressable onPress={() => removeBlock(index)} className="p-1">
                             <Trash2 size={16} className="text-red-500" />
@@ -502,15 +496,15 @@ export default function AdminProjectNewScreen() {
                         {blockType === 'text' ? (
                           <View className="mt-2">
                             <Textarea
-                              label={`Text Block ${index + 1}`}
-                              placeholder="Add more detailed project explanations here..."
+                              label={`${t('admin.projects.textBlockLabel')} ${index + 1}`}
+                              placeholder={t('admin.projects.textBlockPlaceholder')}
                               rows={4}
                               {...register(`content_blocks.${index}.content`)}
                             />
                           </View>
                         ) : (
                           <View className="mt-2">
-                            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Image {index + 1}</Text>
+                            <Text className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('admin.projects.imageBlockTitle').replace('{index}', String(index + 1))}</Text>
                             
                             {blockImage ? (
                               <View className="relative mb-4">
@@ -529,17 +523,17 @@ export default function AdminProjectNewScreen() {
                             ) : (
                               <Pressable onPress={() => handleBlockImagePick(index)} className="aspect-video mb-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center">
                                 <ImageIcon size={32} color="gray" />
-                                <Text className="text-gray-500 text-sm mt-2">Upload Image</Text>
+                                <Text className="text-gray-500 text-sm mt-2">{t('admin.projects.uploadImage')}</Text>
                               </Pressable>
                             )}
                             
                             <Input
-                              placeholder="Image Caption (Optional)"
+                              placeholder={t('admin.projects.imageCaptionPlaceholder')}
                               {...register(`content_blocks.${index}.caption`)}
                             />
                             
                             <Input
-                              placeholder="Or external image URL"
+                              placeholder={t('admin.projects.externalImagePlaceholder')}
                               className="mt-2"
                               value={blockImage || ''}
                               onChangeText={(v) => setValue(`content_blocks.${index}.image_url`, v)}
@@ -553,10 +547,10 @@ export default function AdminProjectNewScreen() {
                 
                 <View className="flex-row gap-3 mt-6">
                   <Button variant="outline" onPress={() => appendBlock({ id: Math.random().toString(), type: 'text' })}>
-                    + Add Text
+                    {t('admin.projects.addTextBlock')}
                   </Button>
                   <Button variant="outline" onPress={() => appendBlock({ id: Math.random().toString(), type: 'image' })}>
-                    + Add Image
+                    {t('admin.projects.addImageBlock')}
                   </Button>
                 </View>
               </View>
@@ -566,22 +560,22 @@ export default function AdminProjectNewScreen() {
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
                 <View className="flex-row items-center justify-between mb-4">
-                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">Tech Stack</Text>
+                  <Text className="font-bold text-xl text-gray-900 dark:text-gray-100">{t('admin.projects.techStack')}</Text>
                   <Text className="text-sm text-gray-500 dark:text-gray-400">
-                    {watch('tech_stack').length} technologies
+                    {t('admin.projects.techCount').replace('{count}', String(watch('tech_stack').length))}
                   </Text>
                 </View>
 
                 <View className="mb-4">
                   <View className="flex-row gap-2 mt-2">
                     <Input
-                      placeholder="Type and press Enter or click Add"
+                      placeholder={t('admin.projects.techPlaceholder')}
                       value={techInput}
                       onChangeText={(v) => setTechInput(v)}
                       onSubmitEditing={addTech}
                       rightElement={
                         <Pressable onPress={addTech} className="px-3 py-1 bg-primary-100 dark:bg-primary-900/40 rounded-md active:opacity-70">
-                          <Text className="text-primary-700 dark:text-primary-300 font-medium text-sm">Add</Text>
+                          <Text className="text-primary-700 dark:text-primary-300 font-medium text-sm">{t('common.add')}</Text>
                         </Pressable>
                       }
                       className="flex-1"
@@ -602,7 +596,7 @@ export default function AdminProjectNewScreen() {
 
                 {techFields.length === 0 ? (
                   <Text className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No technologies added yet. Add at least one.
+                    {t('admin.projects.noTechHint')}
                   </Text>
                 ) : (
                   <View className="flex-row flex-wrap gap-2">
@@ -622,20 +616,20 @@ export default function AdminProjectNewScreen() {
             {/* Links */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Links</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.projects.links')}</Text>
 
                 <View className="space-y-4">
                   <Input
-                    label="GitHub Repository"
-                    placeholder="https://github.com/username/repo"
+                    label={t('admin.projects.githubLabel')}
+                    placeholder={t('admin.projects.githubPlaceholder')}
                     leftIcon={<Github size={20} color="gray" />}
                     error={errors.github_url?.message}
                     {...register('github_url')}
                   />
 
                   <Input
-                    label="Live Demo URL"
-                    placeholder="https://your-demo.com"
+                    label={t('admin.projects.demoLabel')}
+                    placeholder={t('admin.projects.demoPlaceholder')}
                     leftIcon={<ExternalLink size={20} color="gray" />}
                     error={errors.demo_url?.message}
                     {...register('demo_url')}
@@ -647,12 +641,12 @@ export default function AdminProjectNewScreen() {
             {/* Settings */}
             <Card variant="outlined" className="mb-6">
               <View className="p-6">
-                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">Settings</Text>
+                <Text className="font-bold text-xl text-gray-900 dark:text-gray-100 mb-6">{t('admin.projects.settings')}</Text>
 
                 <View className="flex-row items-center justify-between py-4">
                   <View>
-                    <Text className="font-medium text-gray-900 dark:text-gray-100">Featured Project</Text>
-                    <Text className="text-sm text-gray-500 dark:text-gray-400">Show on homepage featured section</Text>
+                    <Text className="font-medium text-gray-900 dark:text-gray-100">{t('admin.projects.featured')}</Text>
+                    <Text className="text-sm text-gray-500 dark:text-gray-400">{t('admin.projects.featuredHint')}</Text>
                   </View>
                   <Controller
                     name="featured"
@@ -681,8 +675,8 @@ export default function AdminProjectNewScreen() {
 
                 <View className="flex-row items-center justify-between py-4">
                   <View>
-                    <Text className="font-medium text-gray-900 dark:text-gray-100">Display Order</Text>
-                    <Text className="text-sm text-gray-500 dark:text-gray-400">Lower numbers appear first</Text>
+                    <Text className="font-medium text-gray-900 dark:text-gray-100">{t('admin.projects.orderLabel')}</Text>
+                    <Text className="text-sm text-gray-500 dark:text-gray-400">{t('admin.projects.orderHint')}</Text>
                   </View>
                   <Controller
                     name="order_index"
@@ -710,16 +704,16 @@ export default function AdminProjectNewScreen() {
         <Modal
           visible={deleteModal}
           onClose={() => setDeleteModal(false)}
-          title="Delete Project"
-          description="This will permanently delete the project. This action cannot be undone."
+          title={t('admin.projects.deleteTitle')}
+          description={t('admin.projects.deleteDescription')}
           size="sm"
         >
           <View className="flex-row justify-end gap-3">
             <Button variant="ghost" onPress={() => setDeleteModal(false)}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button variant="destructive" onPress={handleDelete} loading={deleting}>
-              Delete
+              {t('common.delete')}
             </Button>
           </View>
         </Modal>
